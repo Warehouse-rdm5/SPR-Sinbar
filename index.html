@@ -155,11 +155,8 @@
 
     <script>
       const API_URL = "https://script.google.com/macros/s/AKfycbxaA3F7vjchEDnPDbYrcIvX8CdMgVgkh3IwgHU5ql3GW36ON_oDWLrncHwGMz1-cpMbnQ/exec"; 
-      let html5QrCode, scanModal, masterDataMids = {};
+      let html5QrCode, masterDataMids = {};
       let appMode = 'SPR'; // Default Mode
-
-      document.addEventListener("DOMContentLoaded", function() {
-      });
 
       function selectMode(mode) {
         appMode = mode;
@@ -260,28 +257,30 @@
       }
 
       // ==========================================================
-      // FITUR SCANNER FINAL (DILENGKAPI TOMBOL JEPRET FOTO ALTERNATIF)
+      // FITUR LIVE SCANNER (UI BAWAAN LIBRARY LENGKAP)
       // ==========================================================
-      let html5QrcodeScanner; // Gunakan variabel versi Scanner UI
+      let html5QrcodeScanner; // Menggunakan versi Scanner UI Bawaan
 
       function openScanner() {
         // 1. Tampilkan layar hitam overlay
         document.getElementById('scannerOverlay').style.display = 'flex';
-
-        // 2. Gunakan Html5QrcodeScanner (Versi UI Lengkap)
-        html5QrcodeScanner = new Html5QrcodeScanner(
-          "reader",
-          { fps: 10, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true },
-          false // verbose = false
-        );
-
-        // 3. Render scanner ke layar
-        html5QrcodeScanner.render(onScanSuccess, function(errorMessage) {
-            // Biarkan kosong agar console tidak dipenuhi error pencarian frame
-        });
+        
+        // 2. Buat instance Live Scanner (hanya jika belum ada)
+        if (!html5QrcodeScanner) {
+          html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 15, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true },
+            false // Atur ke true jika ingin melihat log error di console
+          );
+          
+          // 3. Render UI Scanner ke dalam div #reader
+          html5QrcodeScanner.render(onScanSuccess, function(errorMessage) {
+             // Dibiarkan kosong agar console tidak dipenuhi pesan pencarian frame
+          });
+        }
       }
 
-      function onScanSuccess(decodedText, decodedResult) {
+      function onScanSuccess(decodedText) {
         document.getElementById('binCode').value = decodedText;
         try { new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play().catch(()=>{}); } catch(e){}
         stopScanner();
@@ -291,7 +290,10 @@
       function stopScanner() {
         document.getElementById('scannerOverlay').style.display = 'none';
         if (html5QrcodeScanner) {
-          html5QrcodeScanner.clear().catch(e => console.log("Gagal mematikan scanner", e));
+          html5QrcodeScanner.clear().then(() => {
+             // Reset variabel agar UI ter-refresh jika tombol ditekan lagi nanti
+             html5QrcodeScanner = null; 
+          }).catch(e => console.log("Gagal mematikan scanner", e));
         }
       }
 
