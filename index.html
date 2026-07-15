@@ -63,7 +63,7 @@
           </div>
           <div>
             <button type="button" class="btn btn-sm btn-warning fw-bold text-dark me-1" onclick="backToMenu()" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🏠 Menu</button>
-            <button type="button" class="btn btn-sm btn-light fw-bold text-dark" onclick="fetchInitialData()" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🔄 Refresh</button>
+            <button type="button" class="btn btn-sm btn-light fw-bold text-dark" onclick="fetchInitialData(true)" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🔄 Refresh</button>
           </div>
         </div>
       </div>
@@ -72,6 +72,19 @@
         <div class="card card-main">
           <form id="scanForm" onsubmit="handleFormSubmit(event)">
             <datalist id="binList"></datalist>
+            
+            <!-- TOMBOL PILIHAN TARGET SCAN BARU -->
+            <div class="mb-3" id="scanTargetContainer" style="display: none;">
+              <label class="form-label fw-bold text-secondary text-uppercase mb-2" style="font-size: 0.8rem;">🎯 Target Sheet Scanner</label>
+              <div class="d-flex gap-2">
+                <input type="radio" class="btn-check" name="scanTarget" id="targetStock" value="STOCK" checked onchange="toggleProgressPanel()">
+                <label class="btn btn-outline-primary flex-fill fw-bold" style="border-radius: 10px;" for="targetStock">📦 Available Stock</label>
+                
+                <input type="radio" class="btn-check" name="scanTarget" id="targetBinMat" value="BINMAT" onchange="toggleProgressPanel()">
+                <label class="btn btn-outline-primary flex-fill fw-bold" style="border-radius: 10px;" for="targetBinMat">🗄️ Bin Mat</label>
+              </div>
+            </div>
+
             <div class="mb-4">
               <label class="form-label fw-bold text-secondary text-uppercase mb-2">🔍 Scan Storage Bin</label>
               <div class="input-group input-group-lg">
@@ -158,6 +171,20 @@
       let html5QrCode, masterDataMids = {};
       let appMode = 'SPR'; // Default Mode
 
+      function toggleProgressPanel() {
+        if (appMode === 'ECERAN') return; 
+        const stElement = document.querySelector('input[name="scanTarget"]:checked');
+        if (!stElement) return;
+        const st = stElement.value;
+        const pickSlot = document.getElementById('pickSlotPanel');
+        const reverseBin = document.getElementById('reverseBinPanel');
+        
+        if (pickSlot && reverseBin) {
+          pickSlot.style.display = (st === 'BINMAT') ? 'block' : 'none';
+          reverseBin.style.display = (st === 'STOCK') ? 'block' : 'none';
+        }
+      }
+
       function selectMode(mode) {
         appMode = mode;
         document.getElementById('modeSelectionScreen').style.display = 'none';
@@ -165,52 +192,57 @@
 
         const headerTitle = document.getElementById('headerTitle');
         const headerBg = document.getElementById('dynamicHeader');
-        
-        // Elemen yang akan kita manipulasi
         const binInput = document.getElementById('binCode');
+        const targetContainer = document.getElementById('scanTargetContainer');
+        const pickSlotPanel = document.getElementById('pickSlotPanel');
         const reversePanel = document.getElementById('reverseBinPanel');
         
         if (mode === 'ECERAN') {
            headerTitle.innerText = '🛒 WMS Bin Eceran';
            headerBg.style.background = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
-           
-           // 1. Ubah contoh teks pencarian untuk Eceran
            binInput.placeholder = 'Contoh: RA-01-01-01';
            
-           // 2. Sembunyikan panel Reverse Bin untuk Eceran
-           if(reversePanel) reversePanel.style.display = 'none'; 
+           if(targetContainer) targetContainer.style.display = 'none'; 
+           if(reversePanel) reversePanel.style.display = 'none';
+           if(pickSlotPanel) pickSlotPanel.style.display = 'block';
            
         } else {
            headerTitle.innerText = '📦 WMS Bin SPR';
            headerBg.style.background = 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)';
-           
-           // 1. Ubah contoh teks pencarian untuk SPR
            binInput.placeholder = 'Contoh: AB-02-04';
            
-           // 2. Tampilkan kembali panel Reverse Bin untuk SPR
-           if(reversePanel) reversePanel.style.display = 'block'; 
+           if(targetContainer) targetContainer.style.display = 'block';
+           toggleProgressPanel(); 
         }
         
-        fetchInitialData();
+        fetchInitialData(true);
       }
 
       async function sendRequest(payload) {
         payload.mode = appMode; 
+        
+        // KITA HAPUS BACAAN TOMBOL DI SINI. 
+        // Backend akan mengaturnya secara otomatis lewat akhiran Bin (01/02)
+        
         const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
         return await res.json();
       }
 
-      async function fetchInitialData() {
+      async function fetchInitialData(isRefresh = false) {
         const btn = document.getElementById('btnSubmit');
         btn.disabled = true; btn.innerHTML = '⏳ Menarik Data ' + appMode + '...';
         try {
-          const data = await sendRequest({ action: 'init' });
+          const data = await sendRequest({ action: 'init', forceRefresh: isRefresh });
           if(data.status === 'success') {
             const binList = document.getElementById('binList'); binList.innerHTML = '';
             data.bins.forEach(b => { let opt = document.createElement('option'); opt.value = b; binList.appendChild(opt); });
             updateTaskBoard(data);
             masterDataMids = data.masterMids || {}; 
             btn.disabled = false; btn.innerHTML = '🔍 Cek Bin Ini';
+
+            if (isRefresh) {
+               Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data Sinkron dengan GSheet!', showConfirmButton: false, timer: 2000 });
+            }
           } else {
             Swal.fire('Error Database', data.message || 'Gagal terhubung ke Google Sheet.', 'error');
             btn.disabled = false; btn.innerHTML = '⚠️ Coba Lagi';
@@ -319,7 +351,7 @@
                if (result.isConfirmed) { setTimeout(() => { showInputMidPopup(response.bin, response.products); }, 350); } else { document.getElementById('binCode').value = ''; }
              });
           } 
-          else if (response.status === 'bin_not_found_030405') { showInputMidPopup(response.bin, null); }
+          else if (response.status === 'bin_not_found_stock') { showInputMidPopup(response.bin, null); }
           else if (response.type === 'POPUP_LIST') { showAuditListPopup(binVal, response.products, response.suffix); } 
           else { Swal.fire('Error!', response.message, 'error'); }
         } catch (error) { Swal.fire('Error', 'Gagal terhubung ke Database.', 'error'); } 
@@ -329,9 +361,9 @@
       function toggleRemark(idx, status, suffix) {
         const input12 = document.getElementById('remark_'+idx), checkArea345 = document.getElementById('check_area_'+idx);
         if(status === 'notmatch') {
-            if (['03','04','05'].includes(suffix)) { checkArea345.style.display = 'block'; document.getElementById('verified_'+idx).value = 'false'; } else { input12.style.display = 'block'; input12.focus(); }
+            if (['03','04','05','06','07','08','09'].includes(suffix)) { checkArea345.style.display = 'block'; document.getElementById('verified_'+idx).value = 'false'; } else { input12.style.display = 'block'; input12.focus(); }
         } else {
-            if (['03','04','05'].includes(suffix)) { checkArea345.style.display = 'none'; document.getElementById('verified_'+idx).value = 'true'; document.getElementById('stock_status_'+idx).innerHTML = ''; } else { input12.style.display = 'none'; input12.value = ''; }
+            if (['03','04','05','06','07','08','09'].includes(suffix)) { checkArea345.style.display = 'none'; document.getElementById('verified_'+idx).value = 'true'; document.getElementById('stock_status_'+idx).innerHTML = ''; } else { input12.style.display = 'none'; input12.value = ''; }
         }
       }
 
@@ -392,7 +424,7 @@
             for(let i=0; i<products.length; i++) {
               let statusVal = document.getElementById('m_'+i).checked ? 'match' : (document.getElementById('nm_'+i).checked ? 'notmatch' : 'empty');
               let qtyVal = document.getElementById('qty_'+i) ? document.getElementById('qty_'+i).value.trim() : '';
-              if (['03','04','05'].includes(suffix)) {
+              if (['03','04','05','06','07','08','09'].includes(suffix)) {
                   let isVerified = document.getElementById('verified_'+i).value === 'true', remarkVal = document.getElementById('remark_'+i) ? document.getElementById('remark_'+i).value : '';
                   if (statusVal === 'notmatch' && !isVerified) { Swal.showValidationMessage('Pastikan status "Not Match" sudah dicek ke Stok!'); return false; }
                   auditData.push({ row: products[i].row, product: products[i].product, mid: products[i].mid, status: statusVal, remark: remarkVal, qty: qtyVal });
@@ -560,7 +592,6 @@
         }
       }
 
-      // FUNGSI UNTUK KEMBALI KE MENU UTAMA
       function backToMenu() {
         document.getElementById('mainAppContent').style.display = 'none';
         document.getElementById('modeSelectionScreen').style.display = 'flex';
