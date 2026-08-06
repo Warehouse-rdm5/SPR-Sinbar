@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-    <title>WMS Bin Checker DC Sindang Barang</title>
+    <title>WMS Bin Checker DC Sinbar</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -48,7 +48,7 @@
     <div id="modeSelectionScreen">
       <div class="mode-card">
         <h2 class="fw-bold mb-1" style="color: #1e293b;">Area Audit</h2>
-        <p class="text-muted mb-4" style="font-size: 0.9rem; font-weight: 600;">DC Sindang Barang</p>
+        <p class="text-muted mb-4" style="font-size: 0.9rem; font-weight: 600;">DC Sinbar</p>
         <button class="btn-mode btn-spr" onclick="selectMode('SPR')">📦 Check Bin SPR</button>
         <button class="btn-mode btn-eceran" onclick="selectMode('ECERAN')">🛒 Check Bin ECERAN</button>
       </div>
@@ -58,12 +58,12 @@
       <div class="header-wings" id="dynamicHeader">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <h3 class="m-0 fw-bold text-start" id="headerTitle">📦 WMS Bin Checker DC Sindang Barang</h3>
+            <h3 class="m-0 fw-bold text-start" id="headerTitle">📦 WMS Bin Checker DC Sinbar</h3>
             <small style="opacity: 0.85;" class="text-start d-block">Live Scanner DC</small>
           </div>
           <div>
             <button type="button" class="btn btn-sm btn-warning fw-bold text-dark me-1" onclick="backToMenu()" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🏠 Menu</button>
-            <button type="button" class="btn btn-sm btn-light fw-bold text-dark" onclick="fetchInitialData(true)" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🔄 Refresh</button>
+            <button type="button" class="btn btn-sm btn-light fw-bold text-dark" onclick="fetchInitialData()" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🔄 Refresh</button>
           </div>
         </div>
       </div>
@@ -72,19 +72,6 @@
         <div class="card card-main">
           <form id="scanForm" onsubmit="handleFormSubmit(event)">
             <datalist id="binList"></datalist>
-            
-            <!-- TOMBOL PILIHAN TARGET SCAN BARU -->
-            <div class="mb-3" id="scanTargetContainer" style="display: none;">
-              <label class="form-label fw-bold text-secondary text-uppercase mb-2" style="font-size: 0.8rem;">🎯 Target Sheet Scanner</label>
-              <div class="d-flex gap-2">
-                <input type="radio" class="btn-check" name="scanTarget" id="targetStock" value="STOCK" checked onchange="toggleProgressPanel()">
-                <label class="btn btn-outline-primary flex-fill fw-bold" style="border-radius: 10px;" for="targetStock">📦 Available Stock</label>
-                
-                <input type="radio" class="btn-check" name="scanTarget" id="targetBinMat" value="BINMAT" onchange="toggleProgressPanel()">
-                <label class="btn btn-outline-primary flex-fill fw-bold" style="border-radius: 10px;" for="targetBinMat">🗄️ Bin Mat</label>
-              </div>
-            </div>
-
             <div class="mb-4">
               <label class="form-label fw-bold text-secondary text-uppercase mb-2">🔍 Scan Storage Bin</label>
               <div class="input-group input-group-lg">
@@ -99,13 +86,15 @@
         <div class="task-card" id="pickSlotPanel">
           <h6 class="fw-bold text-secondary text-uppercase mb-3" style="font-size:0.75rem; letter-spacing:0.6px;">📋 Progres Bin Pick Slot</h6>
           <div class="row text-center mb-4">
-            <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Target</small><div class="task-num text-primary" style="font-size:1.05rem;" id="psTotal">-</div></div>
+            <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Sisa Target</small><div class="task-num text-primary" style="font-size:1.05rem;" id="psTotal">-</div></div>
             <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Selesai</small><div class="task-num text-success" style="font-size:1.05rem;" id="psDone">-</div></div>
             <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Sesuai%</small><div class="task-num text-danger" style="font-size:1.05rem;" id="psPctMatch">-%</div></div>
-            <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Kosong</small><div class="task-num text-warning text-dark" style="font-size:1.05rem;" id="psKosong">-</div></div>
-            <div class="col px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Blm Val</small><div class="task-num text-secondary" style="font-size:1.05rem;" id="psPctBelum">-%</div></div>
+            <!-- UPDATE PERSENTASE KOSONG -->
+            <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Kosong</small><div class="task-num text-warning text-dark" style="font-size:1.05rem;" id="psKosong">-</div><div style="font-size:0.65rem; font-weight:700; color:#d97706;" id="psPctKosong">-%</div></div>
+            <!-- UPDATE KATA BELUM VALIDASI -->
+            <div class="col px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Belum Validasi</small><div class="task-num text-secondary" style="font-size:1.05rem;" id="psPctBelum">-%</div></div>
           </div>
-
+          <!-- (Sisa tabel Belum, Not Match, Kosong biarkan sama) -->
           <div class="mt-2 text-start">
              <div class="d-flex align-items-center mb-2"><span style="font-size: 1.1rem; margin-right: 6px;">⚠️</span><h6 class="fw-bold m-0" style="font-size: 0.8rem; color: #b45309; text-transform: uppercase;">Daftar Belum Validasi</h6></div>
              <div class="table-responsive" style="max-height: 220px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
@@ -129,13 +118,15 @@
         <div class="task-card" id="reverseBinPanel">
           <h6 class="fw-bold text-secondary text-uppercase mb-3" style="font-size:0.75rem; letter-spacing:0.6px;">📋 Progres Reverse Bin</h6>
           <div class="row text-center mb-4">
-            <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Target</small><div class="task-num text-primary" style="font-size:1.05rem;" id="rbTotal">-</div></div>
+            <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Sisa Target</small><div class="task-num text-primary" style="font-size:1.05rem;" id="rbTotal">-</div></div>
             <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Selesai</small><div class="task-num text-success" style="font-size:1.05rem;" id="rbDone">-</div></div>
             <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Sesuai%</small><div class="task-num text-danger" style="font-size:1.05rem;" id="rbPctMatch">-%</div></div>
-            <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Kosong</small><div class="task-num text-warning text-dark" style="font-size:1.05rem;" id="rbKosong">-</div></div>
-            <div class="col px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Blm Val</small><div class="task-num text-secondary" style="font-size:1.05rem;" id="rbPctBelum">-%</div></div>
+            <!-- UPDATE PERSENTASE KOSONG -->
+            <div class="col border-end px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Kosong</small><div class="task-num text-warning text-dark" style="font-size:1.05rem;" id="rbKosong">-</div><div style="font-size:0.65rem; font-weight:700; color:#d97706;" id="rbPctKosong">-%</div></div>
+            <!-- UPDATE KATA BELUM VALIDASI -->
+            <div class="col px-1"><small class="text-secondary fw-bold" style="font-size:0.6rem;">Belum Validasi</small><div class="task-num text-secondary" style="font-size:1.05rem;" id="rbPctBelum">-%</div></div>
           </div>
-
+          <!-- (Sisa tabel Belum, Not Match, Kosong biarkan sama) -->
           <div class="mt-2 text-start">
              <div class="d-flex align-items-center mb-2"><span style="font-size: 1.1rem; margin-right: 6px;">⚠️</span><h6 class="fw-bold m-0" style="font-size: 0.8rem; color: #b45309; text-transform: uppercase;">Daftar Belum Validasi</h6></div>
              <div class="table-responsive" style="max-height: 220px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 10px;">
@@ -168,22 +159,11 @@
 
     <script>
       const API_URL = "https://script.google.com/macros/s/AKfycbxaA3F7vjchEDnPDbYrcIvX8CdMgVgkh3IwgHU5ql3GW36ON_oDWLrncHwGMz1-cpMbnQ/exec"; 
-      let html5QrCode, masterDataMids = {};
+      let html5QrCode, scanModal, masterDataMids = {};
       let appMode = 'SPR'; // Default Mode
 
-      function toggleProgressPanel() {
-        if (appMode === 'ECERAN') return; 
-        const stElement = document.querySelector('input[name="scanTarget"]:checked');
-        if (!stElement) return;
-        const st = stElement.value;
-        const pickSlot = document.getElementById('pickSlotPanel');
-        const reverseBin = document.getElementById('reverseBinPanel');
-        
-        if (pickSlot && reverseBin) {
-          pickSlot.style.display = (st === 'BINMAT') ? 'block' : 'none';
-          reverseBin.style.display = (st === 'STOCK') ? 'block' : 'none';
-        }
-      }
+      document.addEventListener("DOMContentLoaded", function() {
+      });
 
       function selectMode(mode) {
         appMode = mode;
@@ -192,57 +172,52 @@
 
         const headerTitle = document.getElementById('headerTitle');
         const headerBg = document.getElementById('dynamicHeader');
+        
+        // Elemen yang akan kita manipulasi
         const binInput = document.getElementById('binCode');
-        const targetContainer = document.getElementById('scanTargetContainer');
-        const pickSlotPanel = document.getElementById('pickSlotPanel');
         const reversePanel = document.getElementById('reverseBinPanel');
         
         if (mode === 'ECERAN') {
            headerTitle.innerText = '🛒 WMS Bin Eceran';
            headerBg.style.background = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
+           
+           // 1. Ubah contoh teks pencarian untuk Eceran
            binInput.placeholder = 'Contoh: RA-01-01-01';
            
-           if(targetContainer) targetContainer.style.display = 'none'; 
-           if(reversePanel) reversePanel.style.display = 'none';
-           if(pickSlotPanel) pickSlotPanel.style.display = 'block';
+           // 2. Sembunyikan panel Reverse Bin untuk Eceran
+           if(reversePanel) reversePanel.style.display = 'none'; 
            
         } else {
            headerTitle.innerText = '📦 WMS Bin SPR';
            headerBg.style.background = 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)';
+           
+           // 1. Ubah contoh teks pencarian untuk SPR
            binInput.placeholder = 'Contoh: AB-02-04';
            
-           if(targetContainer) targetContainer.style.display = 'block';
-           toggleProgressPanel(); 
+           // 2. Tampilkan kembali panel Reverse Bin untuk SPR
+           if(reversePanel) reversePanel.style.display = 'block'; 
         }
         
-        fetchInitialData(true);
+        fetchInitialData();
       }
 
       async function sendRequest(payload) {
         payload.mode = appMode; 
-        
-        // KITA HAPUS BACAAN TOMBOL DI SINI. 
-        // Backend akan mengaturnya secara otomatis lewat akhiran Bin (01/02)
-        
         const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
         return await res.json();
       }
 
-      async function fetchInitialData(isRefresh = false) {
+      async function fetchInitialData() {
         const btn = document.getElementById('btnSubmit');
         btn.disabled = true; btn.innerHTML = '⏳ Menarik Data ' + appMode + '...';
         try {
-          const data = await sendRequest({ action: 'init', forceRefresh: isRefresh });
+          const data = await sendRequest({ action: 'init' });
           if(data.status === 'success') {
             const binList = document.getElementById('binList'); binList.innerHTML = '';
             data.bins.forEach(b => { let opt = document.createElement('option'); opt.value = b; binList.appendChild(opt); });
             updateTaskBoard(data);
             masterDataMids = data.masterMids || {}; 
             btn.disabled = false; btn.innerHTML = '🔍 Cek Bin Ini';
-
-            if (isRefresh) {
-               Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data Sinkron dengan GSheet!', showConfirmButton: false, timer: 2000 });
-            }
           } else {
             Swal.fire('Error Database', data.message || 'Gagal terhubung ke Google Sheet.', 'error');
             btn.disabled = false; btn.innerHTML = '⚠️ Coba Lagi';
@@ -256,9 +231,12 @@
       function updateTaskBoard(data) {
         if (!data.pickSlot) return; 
 
-        document.getElementById('psTotal').innerText = data.pickSlot.target; document.getElementById('psDone').innerText = data.pickSlot.match;
-        document.getElementById('psPctMatch').innerText = data.pickSlot.pctMatch + '%'; document.getElementById('psPctBelum').innerText = data.pickSlot.pctBelum + '%';
+        document.getElementById('psTotal').innerText = data.pickSlot.belum; 
+        document.getElementById('psDone').innerText = data.pickSlot.match;
+        document.getElementById('psPctMatch').innerText = data.pickSlot.pctMatch + '%'; 
+        document.getElementById('psPctBelum').innerText = data.pickSlot.pctBelum + '%';
         document.getElementById('psKosong').innerText = data.pickSlot.kosong; 
+        document.getElementById('psPctKosong').innerText = data.pickSlot.pctKosong + '%'; // TAMBAHAN %
 
         let psBelumHTML = ''; data.pickSlot.listBelum.forEach(x => { psBelumHTML += `<tr><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-muted">${x.mid}</td></tr>`; });
         document.getElementById('psTableBelum').innerHTML = psBelumHTML || '<tr><td colspan="3" class="text-center text-success fw-bold py-3">🎉 Semua sudah divalidasi</td></tr>';
@@ -269,9 +247,12 @@
         let psKosongHTML = ''; data.pickSlot.listEmpty.forEach(x => { psKosongHTML += `<tr><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-warning text-dark fw-bold">${x.mid}</td></tr>`; });
         document.getElementById('psTableKosong').innerHTML = psKosongHTML || '<tr><td colspan="3" class="text-center text-muted fw-bold py-3">🎉 Tidak ada Item Kosong</td></tr>';
 
-        document.getElementById('rbTotal').innerText = data.reverseBin.target; document.getElementById('rbDone').innerText = data.reverseBin.match;
-        document.getElementById('rbPctMatch').innerText = data.reverseBin.pctMatch + '%'; document.getElementById('rbPctBelum').innerText = data.reverseBin.pctBelum + '%';
+        document.getElementById('rbTotal').innerText = data.reverseBin.belum; 
+        document.getElementById('rbDone').innerText = data.reverseBin.match;
+        document.getElementById('rbPctMatch').innerText = data.reverseBin.pctMatch + '%'; 
+        document.getElementById('rbPctBelum').innerText = data.reverseBin.pctBelum + '%';
         document.getElementById('rbKosong').innerText = data.reverseBin.kosong; 
+        document.getElementById('rbPctKosong').innerText = data.reverseBin.pctKosong + '%'; // TAMBAHAN %
 
         let rbBelumHTML = ''; data.reverseBin.listBelum.forEach(x => { rbBelumHTML += `<tr><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-muted">${x.mid}</td></tr>`; });
         document.getElementById('rbTableBelum').innerHTML = rbBelumHTML || '<tr><td colspan="3" class="text-center text-success fw-bold py-3">🎉 Semua sudah divalidasi</td></tr>';
@@ -281,38 +262,31 @@
 
         let rbKosongHTML = ''; data.reverseBin.listEmpty.forEach(x => { rbKosongHTML += `<tr><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-warning text-dark fw-bold">${x.mid}</td></tr>`; });
         document.getElementById('rbTableKosong').innerHTML = rbKosongHTML || '<tr><td colspan="3" class="text-center text-muted fw-bold py-3">🎉 Tidak ada Item Kosong</td></tr>';
-
-        if (document.getElementById('lblTotalBinMat')) {
-          document.getElementById('lblTotalBinMat').innerText = data.totalBinMat + " baris"; document.getElementById('lblBinMat0102InStock').innerText = data.binMat0102InStock + " items";
-          document.getElementById('lblBinMat0102NotInStock').innerText = data.binMat0102NotInStock + " items"; document.getElementById('lblStock0102NotInBinMat').innerText = data.stock0102NotInBinMat + " items";
-        }
       }
 
       // ==========================================================
-      // FITUR LIVE SCANNER (UI BAWAAN LIBRARY LENGKAP)
+      // FITUR SCANNER FINAL (DILENGKAPI TOMBOL JEPRET FOTO ALTERNATIF)
       // ==========================================================
-      let html5QrcodeScanner; // Menggunakan versi Scanner UI Bawaan
+      let html5QrcodeScanner; // Gunakan variabel versi Scanner UI
 
       function openScanner() {
         // 1. Tampilkan layar hitam overlay
         document.getElementById('scannerOverlay').style.display = 'flex';
-        
-        // 2. Buat instance Live Scanner (hanya jika belum ada)
-        if (!html5QrcodeScanner) {
-          html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader",
-            { fps: 15, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true },
-            false // Atur ke true jika ingin melihat log error di console
-          );
-          
-          // 3. Render UI Scanner ke dalam div #reader
-          html5QrcodeScanner.render(onScanSuccess, function(errorMessage) {
-             // Dibiarkan kosong agar console tidak dipenuhi pesan pencarian frame
-          });
-        }
+
+        // 2. Gunakan Html5QrcodeScanner (Versi UI Lengkap)
+        html5QrcodeScanner = new Html5QrcodeScanner(
+          "reader",
+          { fps: 10, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true },
+          false // verbose = false
+        );
+
+        // 3. Render scanner ke layar
+        html5QrcodeScanner.render(onScanSuccess, function(errorMessage) {
+            // Biarkan kosong agar console tidak dipenuhi error pencarian frame
+        });
       }
 
-      function onScanSuccess(decodedText) {
+      function onScanSuccess(decodedText, decodedResult) {
         document.getElementById('binCode').value = decodedText;
         try { new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play().catch(()=>{}); } catch(e){}
         stopScanner();
@@ -322,10 +296,7 @@
       function stopScanner() {
         document.getElementById('scannerOverlay').style.display = 'none';
         if (html5QrcodeScanner) {
-          html5QrcodeScanner.clear().then(() => {
-             // Reset variabel agar UI ter-refresh jika tombol ditekan lagi nanti
-             html5QrcodeScanner = null; 
-          }).catch(e => console.log("Gagal mematikan scanner", e));
+          html5QrcodeScanner.clear().catch(e => console.log("Gagal mematikan scanner", e));
         }
       }
 
@@ -351,7 +322,7 @@
                if (result.isConfirmed) { setTimeout(() => { showInputMidPopup(response.bin, response.products); }, 350); } else { document.getElementById('binCode').value = ''; }
              });
           } 
-          else if (response.status === 'bin_not_found_stock') { showInputMidPopup(response.bin, null); }
+          else if (response.status === 'bin_not_found_030405') { showInputMidPopup(response.bin, null); }
           else if (response.type === 'POPUP_LIST') { showAuditListPopup(binVal, response.products, response.suffix); } 
           else { Swal.fire('Error!', response.message, 'error'); }
         } catch (error) { Swal.fire('Error', 'Gagal terhubung ke Database.', 'error'); } 
@@ -361,9 +332,9 @@
       function toggleRemark(idx, status, suffix) {
         const input12 = document.getElementById('remark_'+idx), checkArea345 = document.getElementById('check_area_'+idx);
         if(status === 'notmatch') {
-            if (['03','04','05','06','07','08','09'].includes(suffix)) { checkArea345.style.display = 'block'; document.getElementById('verified_'+idx).value = 'false'; } else { input12.style.display = 'block'; input12.focus(); }
+            if (['03','04','05'].includes(suffix)) { checkArea345.style.display = 'block'; document.getElementById('verified_'+idx).value = 'false'; } else { input12.style.display = 'block'; input12.focus(); }
         } else {
-            if (['03','04','05','06','07','08','09'].includes(suffix)) { checkArea345.style.display = 'none'; document.getElementById('verified_'+idx).value = 'true'; document.getElementById('stock_status_'+idx).innerHTML = ''; } else { input12.style.display = 'none'; input12.value = ''; }
+            if (['03','04','05'].includes(suffix)) { checkArea345.style.display = 'none'; document.getElementById('verified_'+idx).value = 'true'; document.getElementById('stock_status_'+idx).innerHTML = ''; } else { input12.style.display = 'none'; input12.value = ''; }
         }
       }
 
@@ -424,7 +395,7 @@
             for(let i=0; i<products.length; i++) {
               let statusVal = document.getElementById('m_'+i).checked ? 'match' : (document.getElementById('nm_'+i).checked ? 'notmatch' : 'empty');
               let qtyVal = document.getElementById('qty_'+i) ? document.getElementById('qty_'+i).value.trim() : '';
-              if (['03','04','05','06','07','08','09'].includes(suffix)) {
+              if (['03','04','05'].includes(suffix)) {
                   let isVerified = document.getElementById('verified_'+i).value === 'true', remarkVal = document.getElementById('remark_'+i) ? document.getElementById('remark_'+i).value : '';
                   if (statusVal === 'notmatch' && !isVerified) { Swal.showValidationMessage('Pastikan status "Not Match" sudah dicek ke Stok!'); return false; }
                   auditData.push({ row: products[i].row, product: products[i].product, mid: products[i].mid, status: statusVal, remark: remarkVal, qty: qtyVal });
@@ -592,6 +563,7 @@
         }
       }
 
+      // FUNGSI UNTUK KEMBALI KE MENU UTAMA
       function backToMenu() {
         document.getElementById('mainAppContent').style.display = 'none';
         document.getElementById('modeSelectionScreen').style.display = 'flex';
