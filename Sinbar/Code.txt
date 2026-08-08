@@ -1,0 +1,342 @@
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Wings Tools').addItem('🧹 Hapus Data Double', 'removeDuplicates').addToUi();
+}
+
+function removeDuplicates() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sheetsToClean = ['Bin Mat', 'Available stock'], totalRemoved = 0;
+  sheetsToClean.forEach(function(sheetName) {
+    var sheet = ss.getSheetByName(sheetName);
+    if (sheet) {
+      var data = sheet.getDataRange().getValues(), newData = [data[0]], seen = {};
+      for (var i = 1; i < data.length; i++) {
+        var key = String(data[i][0]).trim() + "_" + String(data[i][1]).trim() + "_" + String(data[i][2]).trim();
+        if (key === "__") continue; 
+        if (!seen[key]) { seen[key] = true; newData.push(data[i]); } else { totalRemoved++; }
+      }
+      if (newData.length < data.length) { sheet.clearContents(); sheet.getRange(1, 1, newData.length, newData[0].length).setValues(newData); }
+    }
+  });
+  SpreadsheetApp.getUi().alert("Optimalisasi Selesai!\n" + totalRemoved + " baris data duplikat berhasil dihapus.");
+}
+
+function doGet(e) { return HtmlService.createHtmlOutputFromFile('Index').setTitle('WMS Bin Checker').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL).addMetaTag('viewport', 'width=device-width, initial-scale=1'); }
+function doPost(e) {
+  try { var payload = JSON.parse(e.postData.contents); return ContentService.createTextOutput(JSON.stringify(handleWebAppRequest(payload))).setMimeType(ContentService.MimeType.JSON); } 
+  catch (error) { return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString() })).setMimeType(ContentService.MimeType.JSON); }
+}
+
+// =========================================================================
+// 1. ROUTER UTAMA (PASTIKAN HANYA ADA 1 FUNGSI INI DI SELURUH SCRIPT ANDA)
+// =========================================================================
+function handleWebAppRequest(payload) {
+  if (typeof payload === 'string') payload = JSON.parse(payload);
+  var mode = payload.mode || 'SPR'; // Default SPR
+  
+  if (payload.action === "init") return getInitData(mode);
+  if (payload.action === "checkBin") return checkBinLogic(payload.bin, mode);
+  if (payload.action === "submitBinAudit") return saveBinAudit(payload.bin, payload.auditData, mode);
+  if (payload.action === "checkAvailableStock") return checkAvailableStock(payload.bin, payload.mid, mode);
+  if (payload.action === "processMaintainBin") return processMaintainBin(payload.bin, payload.maintainData, mode);
+}
+
+// =========================================================================
+// UPDATE: MENAMBAHKAN ARRAY UNTUK MENAMPUNG DAFTAR ITEM KOSONG (listEmpty)
+// =========================================================================
+function getInitData(mode) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = getSheetNames(mode);
+  var binMatSheet = ss.getSheetByName(sheets.binMat);
+  var stockSheet = ss.getSheetByName(sheets.stock);
+  var masterSheet = ss.getSheetByName('Master MID');
+  var binList = [], masterMids = {};
+
+  if (masterSheet) {
+    var mData = masterSheet.getDataRange().getValues();
+    for (var i = 1; i < mData.length; i++) {
+      var mId = String(mData[i][0]).trim(), mName = String(mData[i][1]).trim();
+      if (mId !== "") masterMids[mId] = mName;
+    }
+  }
+
+  // Coba ambil data logs (jika ada fungsi getLogsMap di script Anda)
+  var logsMap = {};
+  try { logsMap = getLogsMap(ss); } catch(e) {}
+
+  var totalBinMat = 0, binMat0102InStock = 0, binMat0102NotInStock = 0, stock0102NotInBinMat = 0;
+  var stockMap = {}, stockBins0102 = [];
+  // TAMBAHAN: listEmpty untuk menampung data kosong
+  var reverseBin = { target: 0, match: 0, audited: 0, kosong: 0, belum: 0, listBelum: [], listNotMatch: [], listEmpty: [] };
+
+  if (stockSheet) {
+    var stockData = stockSheet.getDataRange().getValues();
+    for (var i = 1; i < stockData.length; i++) {
+      var sBin = String(stockData[i][0]).trim().toUpperCase(), sProd = String(stockData[i][1]).trim(), sMid = String(stockData[i][2]).trim();
+      var sMatch = String(stockData[i][3]).trim().toLowerCase() === 'v', sNotMatch = String(stockData[i][4]).trim().toLowerCase() === 'v';
+      var sKosong = String(stockData[i][5]).trim().toUpperCase() === 'ITEM KOSONG' || sProd === '-' || sProd === '';
+
+      // Override dari Logs jika ada
+      if (logsMap[sBin + "_" + sProd.toUpperCase()]) {
+         sMatch = logsMap[sBin + "_" + sProd.toUpperCase()].status === 'MATCH';
+         sNotMatch = logsMap[sBin + "_" + sProd.toUpperCase()].status === 'NOT MATCH';
+         sKosong = logsMap[sBin + "_" + sProd.toUpperCase()].status === 'ITEM KOSONG';
+      }
+
+      if (sBin !== "" || sProd !== "") {
+        stockMap[sBin + "_" + sProd.toUpperCase()] = true;
+        var suffix = sBin.slice(-2);
+        if (suffix === '01' || suffix === '02') stockBins0102.push(sBin + "_" + sProd.toUpperCase());
+        if (sBin && binList.indexOf(sBin) === -1) binList.push(sBin);
+
+        if (suffix === '03' || suffix === '04' || suffix === '05') {
+           if (sProd !== "") { 
+              reverseBin.target++;
+              if (sMatch) reverseBin.match++;
+              if (sKosong) {
+                  reverseBin.kosong++; 
+                  reverseBin.listEmpty.push({bin: sBin, product: sProd, mid: sMid}); // PUSH DATA KOSONG
+              }
+              if (sMatch || sNotMatch || sKosong) {
+                 reverseBin.audited++;
+                 if (sNotMatch) reverseBin.listNotMatch.push({bin: sBin, product: sProd, mid: sMid});
+              } else {
+                 reverseBin.belum++;
+                 reverseBin.listBelum.push({bin: sBin, product: sProd, mid: sMid});
+              }
+           }
+        }
+      }
+    }
+  }
+
+  var binMatMap = {};
+  // TAMBAHAN: listEmpty untuk menampung data kosong
+  var pickSlot = { target: 0, match: 0, audited: 0, kosong: 0, belum: 0, listBelum: [], listNotMatch: [], listEmpty: [] };
+
+  if (binMatSheet) {
+    var data = binMatSheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      var b = String(data[i][0]).trim().toUpperCase(), p = String(data[i][1]).trim(), m = String(data[i][2]).trim();
+      if (b === "" && p === "" && m === "") continue;
+      
+      totalBinMat++;
+      if (b && binList.indexOf(b) === -1) binList.push(b);
+      
+      if (b && p) {
+        binMatMap[b + "_" + p.toUpperCase()] = true;
+        var bSuffix = b.slice(-2);
+        if (bSuffix === '01' || bSuffix === '02') { if (stockMap[b + "_" + p.toUpperCase()]) binMat0102InStock++; else binMat0102NotInStock++; }
+      }
+
+      var isMatch = String(data[i][3]).trim().toLowerCase() === 'v', isNotMatch = String(data[i][4]).trim().toLowerCase() === 'v';
+      var isKosong = String(data[i][5]).trim().toUpperCase() === 'ITEM KOSONG' || p === '-' || p === '';
+
+      // Override dari Logs jika ada
+      if (logsMap[b + "_" + p.toUpperCase()]) {
+         isMatch = logsMap[b + "_" + p.toUpperCase()].status === 'MATCH';
+         isNotMatch = logsMap[b + "_" + p.toUpperCase()].status === 'NOT MATCH';
+         isKosong = logsMap[b + "_" + p.toUpperCase()].status === 'ITEM KOSONG';
+      }
+
+      if (p !== "") {
+         pickSlot.target++;
+         if (isMatch) pickSlot.match++;
+         if (isKosong) {
+             pickSlot.kosong++; 
+             pickSlot.listEmpty.push({bin: b, product: p, mid: m}); // PUSH DATA KOSONG
+         }
+         if (isMatch || isNotMatch || isKosong) {
+            pickSlot.audited++;
+            if (isNotMatch) pickSlot.listNotMatch.push({bin: b, product: p, mid: m});
+         } else {
+            pickSlot.belum++;
+            pickSlot.listBelum.push({bin: b, product: p, mid: m});
+         }
+      }
+    }
+  }
+
+  for (var k = 0; k < stockBins0102.length; k++) { if (!binMatMap[stockBins0102[k]]) stock0102NotInBinMat++; }
+  
+  pickSlot.pctMatch = pickSlot.target > 0 ? ((pickSlot.match / pickSlot.target) * 100).toFixed(2) : 0;
+  pickSlot.pctBelum = pickSlot.target > 0 ? ((pickSlot.belum / pickSlot.target) * 100).toFixed(2) : 0;
+  reverseBin.pctMatch = reverseBin.target > 0 ? ((reverseBin.match / reverseBin.target) * 100).toFixed(2) : 0;
+  reverseBin.pctBelum = reverseBin.target > 0 ? ((reverseBin.belum / reverseBin.target) * 100).toFixed(2) : 0;
+
+  return { status: 'success', bins: binList, pickSlot: pickSlot, reverseBin: reverseBin, totalBinMat: totalBinMat, binMat0102InStock: binMat0102InStock, binMat0102NotInStock: binMat0102NotInStock, stock0102NotInBinMat: stock0102NotInBinMat, masterMids: masterMids };
+}
+
+// =========================================================================
+// 2. PERBAIKAN FUNGSI-FUNGSI YANG KEHILANGAN PARAMETER "mode"
+// =========================================================================
+function checkBinLogic(bin, mode) {
+  var suffix = String(bin).trim().slice(-2), ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = getSheetNames(mode);
+  
+  // PERBAIKAN LOGIC: Jika Eceran, selalu arahkan ke Bin Mat. Jika SPR, terapkan filter 01-05.
+  var targetSheetName = '';
+  if (mode === 'ECERAN') {
+     targetSheetName = sheets.binMat;
+  } else {
+     targetSheetName = (suffix === '01' || suffix === '02') ? sheets.binMat : (suffix === '03' || suffix === '04' || suffix === '05') ? sheets.stock : '';
+  }
+  
+  if (!targetSheetName) return { status: 'error', message: 'Kode Bin tidak valid.' };
+
+  var targetSheet = ss.getSheetByName(targetSheetName);
+  if (!targetSheet) return { status: 'error', message: 'Sheet tidak ditemukan.' };
+  var data = targetSheet.getDataRange().getValues(), products = [], auditedCount = 0, seenMap = {};
+  var scannedSummary = { match: [], notmatch: [], empty: [], unaudited: [] };
+
+  var logsMap = {};
+  try { var ls = ss.getSheetByName('Logs'); if (ls) { var ld = ls.getDataRange().getValues(); for (var i=1;i<ld.length;i++){ var b=String(ld[i][1]).trim().toUpperCase(), p=String(ld[i][2]).trim().toUpperCase(); if(b&&p) logsMap[b+"_"+p] = {status:String(ld[i][5]).trim().toUpperCase(), remark:String(ld[i][6]).trim()}; } } } catch(e) {}
+
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim().toUpperCase() === bin.toUpperCase()) {
+      var prodName = String(data[i][1]).trim(), midVal = String(data[i][2]).trim();
+      var matchCol = String(data[i][3]).trim().toLowerCase(), notMatchCol = String(data[i][4]).trim().toLowerCase(), ketCol = String(data[i][5]).trim().toUpperCase();
+      var key = prodName + "_" + midVal;
+      if (!seenMap[key]) {
+         seenMap[key] = true;
+         var currentStatus = null;
+         
+         var logData = logsMap[bin.toUpperCase() + "_" + prodName.toUpperCase()];
+         if (logData) {
+            if (logData.status === 'MATCH') currentStatus = 'match';
+            else if (logData.status === 'NOT MATCH') currentStatus = 'notmatch';
+            else if (logData.status === 'ITEM KOSONG') currentStatus = 'empty';
+            ketCol = logData.remark;
+         } else {
+            if (matchCol === 'v') currentStatus = 'match';
+            else if (notMatchCol === 'v') currentStatus = 'notmatch';
+            else if (ketCol === 'ITEM KOSONG') currentStatus = 'empty';
+         }
+
+         if (currentStatus !== null) auditedCount++;
+         products.push({ row: i + 1, product: prodName, mid: midVal, status: currentStatus, remark: ketCol });
+         if (currentStatus !== null) {
+            var details = { name: prodName, mid: midVal, remark: ketCol };
+            if (currentStatus === 'match') scannedSummary.match.push(details);
+            else if (currentStatus === 'empty') scannedSummary.empty.push(details);
+            else scannedSummary.notmatch.push(details);
+         } else {
+            scannedSummary.unaudited.push({ name: prodName, mid: midVal, remark: '' });
+         }
+      }
+    }
+  }
+
+  if (products.length === 0) {
+    if (mode === 'SPR' && (suffix === '03' || suffix === '04' || suffix === '05')) return { status: 'bin_not_found_030405', bin: bin, suffix: suffix };
+    return { status: 'error', message: 'Bin kosong atau tidak ditemukan.' };
+  }
+  var isFullyAudited = (products.length > 0 && auditedCount === products.length);
+  if (isFullyAudited) return { status: 'already_scanned', bin: bin, summary: scannedSummary, products: products, suffix: suffix };
+  return { status: 'success', type: 'POPUP_LIST', products: products, suffix: suffix };
+}
+
+function saveBinAudit(bin, auditData, mode) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), suffix = String(bin).trim().slice(-2);
+  var sheets = getSheetNames(mode);
+  
+  // PERBAIKAN LOGIC: Jika Eceran, selalu simpan ke Bin Mat
+  var targetSheetName = (mode === 'ECERAN') ? sheets.binMat : ((suffix === '03' || suffix === '04' || suffix === '05') ? sheets.stock : sheets.binMat);
+  
+  var targetSheet = ss.getSheetByName(targetSheetName);
+  if (!targetSheet) return { status: 'error', message: 'Sheet ' + targetSheetName + ' tidak ditemukan!' };
+
+  var logsSheet = ss.getSheetByName('Logs');
+  if (!logsSheet) { logsSheet = ss.insertSheet('Logs'); logsSheet.appendRow(['Timestamp', 'Storage Bin', 'Product', 'MID', 'Qty', 'Status', 'Keterangan']); }
+
+  for (var i = 0; i < auditData.length; i++) {
+    var item = auditData[i], rowData = [];
+    var statusStr = '', remarkLog = item.remark || '';
+    if (item.status === 'match') { rowData = [['v', '', '']]; statusStr = 'MATCH'; } 
+    else if (item.status === 'empty') { rowData = [['', '', 'ITEM KOSONG']]; statusStr = 'ITEM KOSONG'; remarkLog = 'ITEM KOSONG'; } 
+    else {
+      var remarkText = 'ganti mid pada bin';
+      if (item.remark && item.remark.trim() !== '') remarkText += ' (' + item.remark + ')';
+      rowData = [['', 'v', remarkText]]; statusStr = 'NOT MATCH'; remarkLog = remarkText;
+    }
+    targetSheet.getRange(item.row, 4, 1, 3).setValues(rowData);
+    logsSheet.appendRow([new Date(), bin.toUpperCase(), item.product, item.mid, item.qty || '', statusStr, remarkLog]);
+  }
+  return { status: 'success', message: 'Audit Bin ' + bin + ' berhasil disimpan!', stats: getInitData(mode) };
+}
+
+function checkAvailableStock(bin, mid, mode) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(); // <- PERBAIKAN: ss ditambahkan kembali
+  var sheets = getSheetNames(mode);
+  var stockSheet = ss.getSheetByName(sheets.stock);
+  if (!stockSheet) return { status: 'error', message: 'Sheet "Available stock" tidak ditemukan!' };
+  var data = stockSheet.getDataRange().getValues(), isMatch = false, targetMID = String(mid).trim().toUpperCase();
+  for (var i = 0; i < data.length; i++) { if (data[i].join("||").toUpperCase().indexOf(targetMID) !== -1) { isMatch = true; break; } }
+  return { status: isMatch ? 'success' : 'error', message: (isMatch ? 'MATCH! MID ' : 'MISMATCH! MID ') + mid + (isMatch ? ' ditemukan.' : ' tidak ditemukan.'), stats: getInitData(mode) };
+}
+
+
+// =========================================================================
+// LOGIC FINAL: MAINTAIN BIN (MATCH, EDIT MID, KOSONGKAN, DAN TAMBAH BARU)
+// =========================================================================
+function processMaintainBin(bin, maintainData, mode) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), suffix = String(bin).trim().slice(-2);
+  var sheets = getSheetNames(mode);
+  
+  // PERBAIKAN LOGIC: Jika Eceran, selalu maintain di Bin Mat
+  var targetSheetName = (mode === 'ECERAN') ? sheets.binMat : ((suffix === '01' || suffix === '02') ? sheets.binMat : sheets.stock);
+  
+  var targetSheet = ss.getSheetByName(targetSheetName);
+  if (!targetSheet) return { status: 'error', message: 'Sheet tidak ditemukan!' };
+
+  var logsSheet = ss.getSheetByName('Logs');
+  if (!logsSheet) { logsSheet = ss.insertSheet('Logs'); logsSheet.appendRow(['Timestamp', 'Storage Bin', 'Product', 'MID', 'Qty', 'Status', 'Keterangan']); }
+
+  var masterSheet = ss.getSheetByName('Master MID');
+  var masterData = masterSheet.getDataRange().getValues();
+  function getDesc(mId) { for(var i=0; i<masterData.length; i++){ if(String(masterData[i][0]).trim() === String(mId).trim()) return String(masterData[i][1]).trim(); } return ""; }
+
+  var binUpper = bin.toUpperCase();
+  var updates = maintainData.updates || [];
+  var addData = maintainData.addData;
+
+  for(var i=0; i<updates.length; i++) {
+     var u = updates[i]; var row = parseInt(u.row);
+     if (u.action === 'match') {
+        targetSheet.getRange(row, 4, 1, 3).setValues([['v', '', '']]);
+        logsSheet.appendRow([new Date(), binUpper, u.oldProd, u.oldMid, u.qty, 'MATCH', 'maintain bin (diset match)']);
+     } else if (u.action === 'edit') {
+        var newDesc = getDesc(u.newMid);
+        targetSheet.getRange(row, 2, 1, 5).setValues([[u.newMid, newDesc, '', 'v', 'maintain bin']]);
+        logsSheet.appendRow([new Date(), binUpper, u.newMid, newDesc, u.qty, 'NOT MATCH', 'maintain bin (ubah dari ' + u.oldMid + ')']);
+     } else if (u.action === 'empty') {
+        targetSheet.getRange(row, 4, 1, 3).setValues([['', '', 'ITEM KOSONG']]);
+        logsSheet.appendRow([new Date(), binUpper, u.oldProd, u.oldMid, u.qty, 'ITEM KOSONG', 'ITEM KOSONG']);
+     }
+  }
+
+  if (addData) {
+     var addDesc = getDesc(addData.newMid);
+     var tData = targetSheet.getDataRange().getValues();
+     var emptyRowIdx = -1;
+     for (var j = 1; j < tData.length; j++) {
+        if (String(tData[j][0]).trim().toUpperCase() === binUpper) {
+           var exProd = String(tData[j][1]).trim();
+           if (exProd === '-' || exProd === '') { emptyRowIdx = j + 1; break; }
+        }
+     }
+     var newRowData = [[binUpper, addData.newMid, addDesc, '', 'v', 'maintain bin']];
+     if (emptyRowIdx !== -1) { targetSheet.getRange(emptyRowIdx, 1, 1, 6).setValues(newRowData); } else { targetSheet.appendRow(newRowData[0]); }
+     logsSheet.appendRow([new Date(), binUpper, addData.newMid, addDesc, addData.qty, 'NOT MATCH', 'maintain bin (tambah slot baru)']);
+  }
+  return { status: 'success', message: 'Data Bin ' + binUpper + ' berhasil diperbarui!', stats: getInitData(mode) };
+}
+
+// =========================================================================
+// FUNGSI BARU: PENENTUAN NAMA SHEET BERDASARKAN MODE (SPR / ECERAN)
+// Letakkan di paling bawah script.
+// =========================================================================
+function getSheetNames(mode) {
+  if (mode === 'ECERAN') {
+    return { binMat: 'Bin Mat Eceran', stock: 'Available Stock Eceran' };
+  }
+  return { binMat: 'Bin Mat', stock: 'Available stock' };
+}
