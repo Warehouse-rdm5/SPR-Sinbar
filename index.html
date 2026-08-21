@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-    <title>WMS Bin Checker DC Sinbar</title>
+    <title>WMS Bin Checker DC Sindang Barang</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -40,7 +40,6 @@
       #reader button { padding: 10px 20px; background-color: #d32f2f; color: white; border: none; border-radius: 8px; font-weight: bold; margin: 10px 5px; cursor: pointer; }
       #reader a { color: #d32f2f; font-weight: bold; text-decoration: none; margin-top: 10px; display: inline-block; }
       
-      /* Animasi klik pada baris tabel */
       .clickable-row { cursor: pointer; transition: all 0.2s ease; }
       .clickable-row:hover { background-color: #f1f5f9 !important; transform: scale(1.01); }
     </style>
@@ -50,7 +49,8 @@
     <div id="modeSelectionScreen">
       <div class="mode-card">
         <h2 class="fw-bold mb-1" style="color: #1e293b;">Area Audit</h2>
-        <p class="text-muted mb-4" style="font-size: 0.9rem; font-weight: 600;">DC Sinbar</p>
+        <!-- Ganti nama DC di bawah ini jika menduplikat untuk cabang lain -->
+        <p class="text-muted mb-4" style="font-size: 0.9rem; font-weight: 600;">DC Sindang Barang</p>
         <button class="btn-mode btn-spr" onclick="selectMode('SPR')">📦 Check Bin SPR</button>
         <button class="btn-mode btn-eceran" onclick="selectMode('ECERAN')">🛒 Check Bin ECERAN</button>
       </div>
@@ -157,12 +157,18 @@
 
     <script>
       // ==========================================
-      // PASTIKAN API_URL INI SESUAI DENGAN DEPLOY TERBARU ANDA
+      // PASTIKAN API_URL INI SESUAI DENGAN DEPLOY TERBARU ANDA!
       // ==========================================
       const API_URL = "https://script.google.com/macros/s/AKfycbxaA3F7vjchEDnPDbYrcIvX8CdMgVgkh3IwgHU5ql3GW36ON_oDWLrncHwGMz1-cpMbnQ/exec"; 
       
       let html5QrCode, scanModal, masterDataMids = {};
       let appMode = 'SPR';
+      
+      // Ganti nama DC di bawah ini jika menduplikat untuk cabang lain
+      const targetDCName = 'STA Sindang Barang'; 
+
+      // Variabel penyimpan angka mutlak
+      let currentAccuracyValue = "0.00";
 
       function selectMode(mode) {
         appMode = mode;
@@ -176,12 +182,12 @@
         const reservePanel = document.getElementById('reserveBinPanel');
         
         if (mode === 'ECERAN') {
-           headerTitle.innerText = '🛒 WMS Bin Eceran';
+           headerTitle.innerText = `🛒 WMS Bin Eceran ${targetDCName.replace('STA ', 'DC ')}`;
            headerBg.style.background = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
            binInput.placeholder = 'Contoh: RA-01-01-01';
            if(reservePanel) reservePanel.style.display = 'none'; 
         } else {
-           headerTitle.innerText = '📦 WMS Bin SPR';
+           headerTitle.innerText = `📦 WMS Bin SPR ${targetDCName.replace('STA ', 'DC ')}`;
            headerBg.style.background = 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)';
            binInput.placeholder = 'Contoh: AB-02-04';
            if(reservePanel) reservePanel.style.display = 'block'; 
@@ -196,10 +202,21 @@
         return await res.json();
       }
 
+      // ==========================================
+      // FUNGSI SUNTIK AKURASI (100% SAMA DENGAN UI)
+      // ==========================================
       function sendAccuracyReport() {
+        let pctText = currentAccuracyValue;
+        let accuracyValue = parseFloat(pctText) / 100;
+
+        if (isNaN(accuracyValue) || pctText === "0.00" || pctText === "-") {
+            Swal.fire('Data Kosong', 'Belum ada data akurasi untuk dikirim.', 'warning');
+            return;
+        }
+
         Swal.fire({
            title: 'Kirim Laporan Akurasi?',
-           text: `Kirim hasil pencapaian Audit area ${appMode} bulan ini ke Spreadsheet Pusat sekarang?`,
+           text: `Suntikkan akurasi ${pctText}% untuk area ${appMode} ke Spreadsheet Pusat (Target: ${targetDCName})?`,
            icon: 'info',
            showCancelButton: true,
            confirmButtonText: '🚀 Ya, Kirim Data',
@@ -209,7 +226,7 @@
            if(result.isConfirmed) {
               Swal.fire({ title: 'Menghubungi Server...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
               try {
-                 const res = await sendRequest({ action: 'sendAccuracy' });
+                 const res = await sendRequest({ action: 'sendAccuracy', accuracyVal: accuracyValue, targetDC: targetDCName });
                  if(res.status === 'success') {
                      Swal.fire('Berhasil Terkirim!', res.message, 'success');
                  } else {
@@ -222,9 +239,6 @@
         });
       }
 
-      // ==========================================
-      // FITUR PEMISAHAN MUATAN (PAYLOAD SPLITTING)
-      // ==========================================
       async function fetchInitialData() {
         const btn = document.getElementById('btnSubmit');
         btn.disabled = true; btn.innerHTML = '⏳ Menarik Data ' + appMode + '...';
@@ -243,7 +257,6 @@
             updateTaskBoard(data);
             btn.disabled = false; btn.innerHTML = '🔍 Cek Bin Ini';
             
-            // JALUR BELAKANG: Ambil Master MID Diam-Diam
             fetchMasterMidsSilent();
             
           } else {
@@ -267,26 +280,19 @@
         }
       }
 
-      // ==========================================
-      // FITUR BARU: KLIK BARIS TABEL SEBAGAI JALAN PINTAS
-      // ==========================================
       function quickCheckBin(binStr) {
-          // Isi otomatis kolom pencarian
           document.getElementById('binCode').value = binStr;
-          
-          // Gulir layar ke atas secara halus agar pop-up terlihat jelas
           window.scrollTo({ top: 0, behavior: 'smooth' });
-          
-          // Panggil fungsi submit persis seperti saat menekan tombol "Cek Bin Ini"
           handleFormSubmit(null);
       }
 
-      // ==========================================
-      // RENDER TABEL (DILENGKAPI EVENT ONCLICK)
-      // ==========================================
       function updateTaskBoard(data) {
         if (!data.pickSlot) return; 
 
+        // RUMUS TRUE ACCURACY DIKUNCI HANYA KE PICK SLOT SAJA (Sesuai Permintaan)
+        currentAccuracyValue = data.pickSlot.pctMatch;
+
+        // Render Angka ke HTML
         document.getElementById('psTotal').innerText = data.pickSlot.belum; 
         document.getElementById('psDone').innerText = data.pickSlot.match;
         document.getElementById('psPctMatch').innerText = data.pickSlot.pctMatch + '%'; 
@@ -541,7 +547,6 @@
                 let newMid = action === 'edit' ? document.getElementById(`new_mid_${i}`).value.trim() : '';
                 let qty = (action === 'edit' || action === 'empty' || action === 'match') ? document.getElementById(`qty_${i}`).value.trim() : '';
                 
-                // Pastikan Master MIDs tidak kosong saat validasi
                 if (action === 'edit' && !newMid) { Swal.showValidationMessage('⚠️ MID Baru wajib diisi jika pilih Ganti MID!'); return false; }
                 if (action === 'edit' && newMid && Object.keys(masterDataMids).length > 0 && !masterDataMids[newMid]) { Swal.showValidationMessage(`⚠️ MID ${newMid} tidak terdaftar!`); return false; }
                 
