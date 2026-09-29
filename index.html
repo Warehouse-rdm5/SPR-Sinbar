@@ -7,18 +7,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
       html, body { max-width: 100vw; overflow-x: hidden; }
       body { background-color: #f0f2f5; font-family: 'Plus Jakarta Sans', sans-serif; color: #333; padding-bottom: 30px; touch-action: manipulation; }
-      
       #modeSelectionScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #e2e8f0; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
       .mode-card { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; border-top: 8px solid #d32f2f; }
       .btn-mode { padding: 18px; font-size: 1.15rem; font-weight: 800; border-radius: 14px; width: 100%; border: none; transition: transform 0.2s; }
       .btn-mode:active { transform: scale(0.96); }
       .btn-spr { background-color: #d32f2f; color: white; box-shadow: 0 6px 15px rgba(211, 47, 47, 0.3); margin-bottom: 15px; }
       .btn-eceran { background-color: #1e293b; color: white; box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); }
-
       .header-wings { background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%); color: white; padding: 20px 15px; text-align: center; border-radius: 0 0 20px 20px; box-shadow: 0 4px 15px rgba(183, 28, 28, 0.2); margin-bottom: 25px;}
       .card-main { border: none; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); padding: 20px;}
       .btn-scan { border-radius: 12px; font-weight: 700; padding: 14px; font-size: 1.1rem; background-color: #d32f2f; color: white; border: none; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3); width: 100%;}
@@ -36,16 +34,13 @@
       .custom-radio-btn:checked + .label-match { background-color: #22c55e; border-color: #22c55e; color: white; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4); }
       .custom-radio-btn:checked + .label-notmatch { background-color: #ef4444; border-color: #ef4444; color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
       .custom-radio-btn:checked + .label-empty { background-color: #f59e0b; border-color: #f59e0b; color: white; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); }
-
       #reader button { padding: 10px 20px; background-color: #d32f2f; color: white; border: none; border-radius: 8px; font-weight: bold; margin: 10px 5px; cursor: pointer; }
       #reader a { color: #d32f2f; font-weight: bold; text-decoration: none; margin-top: 10px; display: inline-block; }
-      
       .clickable-row { cursor: pointer; transition: all 0.2s ease; }
       .clickable-row:hover { background-color: #f1f5f9 !important; transform: scale(1.01); }
     </style>
   </head>
   <body>
-    
     <div id="modeSelectionScreen">
       <div class="mode-card">
         <h2 class="fw-bold mb-1" style="color: #1e293b;">Area Audit</h2>
@@ -55,7 +50,6 @@
         <button class="btn-mode btn-eceran" onclick="selectMode('ECERAN')">🛒 Check Bin ECERAN</button>
       </div>
     </div>
-
     <div id="mainAppContent" style="display: none;">
       <div class="header-wings" id="dynamicHeader">
         <div class="d-flex justify-content-between align-items-center">
@@ -65,14 +59,12 @@
           </div>
           <div>
             <button type="button" class="btn btn-sm btn-info fw-bold text-dark me-1" onclick="sendAccuracyReport()" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">📤 Kirim Akurasi</button>
-            <button type="button" class="btn btn-sm btn-light fw-bold text-dark" onclick="fetchInitialData()" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🔄 Refresh</button>
+            <button type="button" class="btn btn-sm btn-light fw-bold text-dark" onclick="fetchInitialData(true)" style="border-radius: 20px; padding: 5px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">🔄 Refresh</button>
           </div>
         </div>
       </div>
-
       <div class="container pb-4">
         <button type="button" class="btn btn-sm btn-outline-secondary fw-bold mb-3 w-100" onclick="backToMenu()" style="border-radius: 10px; padding: 10px;">🏠 Ganti Mode / Menu Awal</button>
-
         <div class="card card-main">
           <form id="scanForm" onsubmit="handleFormSubmit(event)">
             <datalist id="binList"></datalist>
@@ -86,7 +78,6 @@
             <button type="submit" class="btn btn-scan" id="btnSubmit">🔍 Cek Bin Ini</button>
           </form>
         </div>
-
         <div class="task-card" id="pickSlotPanel">
           <h6 class="fw-bold text-secondary text-uppercase mb-3" style="font-size:0.75rem; letter-spacing:0.6px;">📋 Progres Bin Pick Slot</h6>
           <div class="row text-center mb-4">
@@ -115,7 +106,6 @@
              </div>
           </div>
         </div>
-
         <div class="task-card" id="reserveBinPanel">
           <h6 class="fw-bold text-secondary text-uppercase mb-3" style="font-size:0.75rem; letter-spacing:0.6px;">📋 Progres Reserve Bin</h6>
           <div class="row text-center mb-4">
@@ -146,7 +136,6 @@
         </div>
       </div>
     </div>
-
     <div id="scannerOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index:99999; flex-direction:column; padding:20px; overflow-y:auto;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h5 style="color:white; margin:0; font-weight:bold;">Arahkan ke Barcode</h5>
@@ -154,33 +143,27 @@
       </div>
       <div id="reader" style="width:100%; background:white; border-radius:12px; padding:15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"></div>
     </div>
-
     <script>
       // ==========================================
-      // PASTIKAN API_URL INI SESUAI DENGAN DEPLOY TERBARU ANDA!
+      // WEBAPP_URL: alamat /exec deployment yang dipakai tombol Buka WMS di GitHub.
       // ==========================================
-      const API_URL = "https://script.google.com/macros/s/AKfycbxaA3F7vjchEDnPDbYrcIvX8CdMgVgkh3IwgHU5ql3GW36ON_oDWLrncHwGMz1-cpMbnQ/exec"; 
-      
+      const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxaA3F7vjchEDnPDbYrcIvX8CdMgVgkh3IwgHU5ql3GW36ON_oDWLrncHwGMz1-cpMbnQ/exec"; 
       let html5QrCode, scanModal, masterDataMids = {};
       let appMode = 'SPR';
-      
       // Ganti nama DC di bawah ini jika menduplikat untuk cabang lain
       const targetDCName = 'STA Sindang Barang'; 
-
-      // Variabel penyimpan angka mutlak
-      let currentAccuracyValue = "0.00";
-
+      // Variabel penyimpan angka akurasi mutlak
+      let accurateEceranPct = "0.00";
+      let accurateSprPct = "0.00";
       function selectMode(mode) {
+        masterLoaded=false;masterDataMids={};
         appMode = mode;
         document.getElementById('modeSelectionScreen').style.display = 'none';
         document.getElementById('mainAppContent').style.display = 'block';
-
         const headerTitle = document.getElementById('headerTitle');
         const headerBg = document.getElementById('dynamicHeader');
-        
         const binInput = document.getElementById('binCode');
         const reservePanel = document.getElementById('reserveBinPanel');
-        
         if (mode === 'ECERAN') {
            headerTitle.innerText = `🛒 WMS Bin Eceran ${targetDCName.replace('STA ', 'DC ')}`;
            headerBg.style.background = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
@@ -190,30 +173,173 @@
            headerTitle.innerText = `📦 WMS Bin SPR ${targetDCName.replace('STA ', 'DC ')}`;
            headerBg.style.background = 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)';
            binInput.placeholder = 'Contoh: AB-02-04';
-           if(reservePanel) reservePanel.style.display = 'block'; 
+           if(reservePanel) reservePanel.style.display = 'none'; 
         }
-        
         fetchInitialData();
       }
-
-      async function sendRequest(payload) {
-        payload.mode = appMode; 
-        const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        return await res.json();
+      let scanBusy=false, writeBusy=false, boardEpoch=0;
+      let boardTimer=null,boardInFlight=false,boardDirty=false,lastActivity=0,masterLoaded=false;
+      // R8: tidak ada fetch lintas domain. Semua operasi sheet melalui google.script.run.
+      const WMS_REVISION='BINMAT-R11';
+      let unconfirmedWrite=false;
+      const snapshots=Object.create(null);
+      function installSnapshot(data){
+        if(!Array.isArray(data.records))throw new Error('Code.gs belum R10. Perbarui Code.gs dan deployment terlebih dahulu.');
+        snapshots[data.mode]={records:data.records,at:data.snapshotAt||Date.now()};
       }
+      function snapshotBoard(mode){
+        const snap=snapshots[mode];
+        if(!snap)return null;
+        return {status:'success',mode:mode,pickSlot:snapshotStats(snap.records),reserveBin:snapshotStats([])};
+      }
+      function applyBinPatch(result){
+        const snap=snapshots[result.mode];
+        if(!snap||!Array.isArray(result.binRecords))return;
+        // Ganti berdasarkan storage bin, bukan nomor baris lama (sheet bisa di-sort).
+        snap.records=snap.records.filter(r=>r.bin!==result.bin).concat(result.binRecords).sort((a,b)=>a.row-b.row);
+        if(result.mode===appMode)updateTaskBoard(snapshotBoard(appMode));
+      }
+      function addExpectedStatuses(request){
+        const snap=snapshots[request.mode];if(!snap)return;
+        function attach(item,mid){
+          const r=snap.records.find(r=>r.row===Number(item.row)&&r.bin===String(request.bin).trim().toUpperCase()&&String(r.mid)===String(mid));
+          return r?{...item,expectedStatus:r.status}:item;
+        }
+        if(Array.isArray(request.auditData))request.auditData=request.auditData.map(i=>attach(i,i.mid));
+        if(request.maintainData)request.maintainData={...request.maintainData,updates:(request.maintainData.updates||[]).map(i=>attach(i,i.oldMid))};
+      }
+      function localCheckBin(bin,mode){
+        const snap=snapshots[mode];
+        if(!snap)throw new Error('Data awal belum siap. Tekan Refresh dan tunggu daftar bin selesai dimuat.');
+        const b=String(bin).trim().toUpperCase(),seen=new Set(),products=[],summary={match:[],notmatch:[],empty:[],unaudited:[]};
+        snap.records.filter(r=>r.bin===b).forEach(r=>{
+          const key=String(r.mid).trim().toUpperCase();if(seen.has(key))return;seen.add(key);
+          const status=({'MATCH':'match','NOT MATCH':'notmatch','ITEM KOSONG':'empty'})[r.status]||null;
+          products.push({row:r.row,bin:b,binLabel:b,mid:r.mid,product:r.product,status:status,remark:r.remark});
+          summary[status||'unaudited'].push({name:r.product,mid:r.mid,remark:r.remark});
+        });
+        if(!products.length)return {status:'not_found',title:'Bin Belum Ada di Data Sesi',message:'Bin tidak ditemukan pada data yang dimuat. Tekan Refresh jika database baru diperbarui.'};
+        return {status:summary.unaudited.length?'success':'already_scanned',type:'POPUP_LIST',bin:b,products:products,summary:summary,suffix:b.split('-').pop()};
+      }
+function snapshotStats(records) {
+  var s = {target:0, match:0, notmatch:0, audited:0, kosong:0, belum:0, conflict:0,
+    listBelum:[], listNotMatch:[], listEmpty:[]};
+  var seen = Object.create(null), bins = Object.create(null);
+  records.forEach(function(r) {
+    if (!r.bin || !r.mid || r.mid === '-') return;
+    var k = JSON.stringify([r.bin,String(r.mid).trim().toUpperCase()]);
+    if (!seen[k]) seen[k] = r;
+    else if (seen[k].status !== r.status) seen[k] = Object.assign({},r,{status:'PERLU CEK'});
+  });
+  Object.keys(seen).forEach(function(k) {
+    var r = seen[k]; s.target++;
+    if (!bins[r.bin]) bins[r.bin] = {total:0,done:0}; bins[r.bin].total++;
+    var list;
+    if (r.status === 'MATCH') { s.match++; s.audited++; }
+    else if (r.status === 'NOT MATCH') { s.notmatch++; s.audited++; list=s.listNotMatch; }
+    else if (r.status === 'ITEM KOSONG') { s.kosong++; s.audited++; list=s.listEmpty; }
+    else { s.belum++; list=s.listBelum; if (r.status === 'PERLU CEK') s.conflict++; }
+    if (['MATCH','NOT MATCH','ITEM KOSONG'].indexOf(r.status)>=0) bins[r.bin].done++;
+    if (list && list.length < 100) list.push({bin:r.bin,mid:r.mid,product:r.product});
+  });
+  s.binTarget = Object.keys(bins).length;
+  s.binAudited = Object.keys(bins).filter(function(b) { return bins[b].done === bins[b].total; }).length;
+  ['Match','Belum','Kosong','NotMatch'].forEach(function(k) {
+    s['pct'+k] = (s.target ? 100 * s[k.toLowerCase()] / s.target : 0).toFixed(2);
+  });
+  return s;
+}
 
+      function inAppsScript(){return !!(window.google&&google.script&&google.script.run);}
+      function callServer(request,isWrite){
+        return new Promise((resolve,reject)=>{
+          let timedOut=false;
+          const timer=setTimeout(()=>{
+            timedOut=true;
+            if(isWrite)unconfirmedWrite=true;
+            reject(new Error(isWrite
+              ?'Batas tunggu konfirmasi 45 detik terlewati. Proses server belum dibatalkan. Jangan kirim ulang; cek status bin di sheet.'
+              :'Respons belum diterima dalam 30 detik. Periksa koneksi dan muat ulang data.'));
+          },isWrite?45000:30000);
+          function finish(result,error){
+            clearTimeout(timer);
+            if(timedOut){
+              if(isWrite){
+                unconfirmedWrite=false;
+                dashboardNotice(error?'Konfirmasi akhir bermasalah. Periksa bin sebelum menyimpan kembali.'
+                  :result&&result.status==='success'?'Konfirmasi diterima: data tersimpan. Tekan Refresh untuk dashboard.'
+                  :'Respons akhir: '+(result&&result.message||'Periksa status bin.'));
+                if(!error&&result&&Array.isArray(result.binRecords)){try{applyBinPatch(result);}catch(e){console.error(e);}}
+              }
+              return; // Hasil terlambat tidak membuka kembali popup audit lama.
+            }
+            if(error)reject(new Error(error.message||String(error)));
+            else if(!result||typeof result.status!=='string')reject(new Error('Respons server tidak lengkap.'));
+            else resolve(result);
+          }
+          try{
+            google.script.run.withSuccessHandler(result=>finish(result,null))
+              .withFailureHandler(error=>finish(null,error)).handleWebAppRequest(request);
+          }catch(error){finish(null,error);}
+        });
+      }
+      async function sendRequest(payload) {
+        if(!inAppsScript())throw new Error('Buka WMS melalui tombol Buka Webapp. Halaman kamera tidak melakukan penyimpanan.');
+        const request={...payload,mode:payload.mode||appMode};
+        if(request.action==='checkBin')return localCheckBin(request.bin,request.mode);
+        if(snapshots[request.mode]&&request.action==='getMaster'){
+          const masterMids={};snapshots[request.mode].records.forEach(r=>{if(r.mid&&r.mid!=='-')masterMids[r.mid]=r.product||'-';});
+          return {status:'success',masterMids:masterMids};
+        }
+        if(snapshots[request.mode]&&request.action==='checkAvailableStock'){
+          const mid=String(request.mid||'').trim().toUpperCase();
+          const found=!!mid&&snapshots[request.mode].records.some(r=>String(r.mid).toUpperCase()===mid);
+          return {status:found?'success':'error',message:(found?'MATCH! MID ':'MISMATCH! MID ')+mid+(found?' ditemukan.':' tidak ditemukan.')};
+        }
+        addExpectedStatuses(request);
+        const isWrite=['submitBinAudit','processMaintainBin','addNewBin','sendAccuracy'].includes(request.action);
+        if(isWrite&&(writeBusy||unconfirmedWrite))throw new Error('Penyimpanan sebelumnya belum mendapat konfirmasi. Periksa bin; jangan kirim ulang.');
+        if(isWrite){writeBusy=true;boardEpoch++;}
+        if(isWrite||request.action==='checkBin')lastActivity=Date.now();
+        const started=performance.now();
+        try {
+          for(let attempt=0;attempt<5;attempt++){
+            const result=await callServer(request,isWrite);
+            if(!isWrite||result.status!=='busy'||result.retryable!==true){
+              if(Array.isArray(result.binRecords)){try{applyBinPatch(result);}catch(e){console.error('Pembaruan tabel:',e);}}
+              return result;
+            }
+            if(attempt===4)return {status:'error',message:'Antrean simpan masih penuh; permintaan ini belum menulis data. Coba setelah beberapa saat.'};
+            await new Promise(resolve=>setTimeout(resolve,600*(attempt+1)+Math.random()*500));
+          }
+        } finally {
+          if(isWrite)writeBusy=false;
+          console.info('[WMS '+WMS_REVISION+']',request.action,Math.round(performance.now()-started)+' ms');
+        }
+      }
+      function dashboardNotice(message) {
+        let el=document.getElementById('dashboardUpdateNotice');
+        if(!el){el=document.createElement('div');el.id='dashboardUpdateNotice';el.style.cssText='padding:8px 16px;color:#92400e;background:#fef3c7;text-align:center;font-size:13px;';document.getElementById('mainAppContent').prepend(el);}
+        el.textContent=message;el.hidden=!message;
+      }
+      function refreshBoardAfterSave() {
+        clearTimeout(boardTimer);boardDirty=false;
+        dashboardNotice('Data dan tabel sesi ini diperbarui. Refresh untuk melihat perubahan dari pengguna lain.');
+      }
+      function scheduleBoardRefresh() {
+        // R9: tidak ada polling / refresh otomatis yang bersaing dengan scan berikutnya.
+        clearTimeout(boardTimer);boardTimer=null;
+      }
       // ==========================================
-      // FUNGSI SUNTIK AKURASI (100% SAMA DENGAN UI)
+      // FUNGSI SUNTIK AKURASI (MENGAMBIL ANGKA DARI LAYAR 100%)
       // ==========================================
       function sendAccuracyReport() {
-        let pctText = currentAccuracyValue;
+        let pctText = document.getElementById('psPctMatch').innerText.replace('%', '').trim();
         let accuracyValue = parseFloat(pctText) / 100;
-
-        if (isNaN(accuracyValue) || pctText === "0.00" || pctText === "-") {
+        if (isNaN(accuracyValue) || pctText === "-") {
             Swal.fire('Data Kosong', 'Belum ada data akurasi untuk dikirim.', 'warning');
             return;
         }
-
         Swal.fire({
            title: 'Kirim Laporan Akurasi?',
            text: `Suntikkan akurasi ${pctText}% untuk area ${appMode} ke Spreadsheet Pusat (Target: ${targetDCName})?`,
@@ -224,7 +350,7 @@
            confirmButtonColor: '#2563eb'
         }).then(async (result) => {
            if(result.isConfirmed) {
-              Swal.fire({ title: 'Menghubungi Server...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+              Swal.fire({ title: 'Menghubungi Server...', allowOutsideClick: false, didOpen: () => { if(writeBusy)Swal.showLoading(); }});
               try {
                  const res = await sendRequest({ action: 'sendAccuracy', accuracyVal: accuracyValue, targetDC: targetDCName });
                  if(res.status === 'success') {
@@ -238,162 +364,271 @@
            }
         });
       }
-
-      async function fetchInitialData() {
-        const btn = document.getElementById('btnSubmit');
-        btn.disabled = true; btn.innerHTML = '⏳ Menarik Data ' + appMode + '...';
+      async function fetchInitialData(forceRefresh=false) {
+        if(document.hidden||scanBusy||writeBusy||pendingScan||(scannerToken&&scannerWindow&&!scannerWindow.closed)){dashboardNotice('Selesaikan scan dahulu, lalu tekan Refresh untuk angka dashboard.');return;}
+        if(boardInFlight){dashboardNotice('Dashboard sedang dimuat.');return;}
+        clearTimeout(boardTimer);boardDirty=false;boardInFlight=true;
+        const mode=appMode,epoch=++boardEpoch;
+        dashboardNotice('Memuat data '+mode+'… Scan siap setelah daftar selesai dimuat.');
+        // Tidak memblokir tombol scan untuk menunggu ringkasan seluruh database.
         try {
-          const data = await sendRequest({ action: 'init' });
-          if(data.status === 'success') {
-            
-            const binList = document.getElementById('binList'); 
-            binList.innerHTML = '';
-            data.bins.forEach(b => { 
-                let opt = document.createElement('option'); 
-                opt.value = b; 
-                binList.appendChild(opt); 
-            });
-
-            updateTaskBoard(data);
-            btn.disabled = false; btn.innerHTML = '🔍 Cek Bin Ini';
-            
-            fetchMasterMidsSilent();
-            
-          } else {
-            Swal.fire('Error Database', data.message || 'Gagal terhubung ke Google Sheet.', 'error');
-            btn.disabled = false; btn.innerHTML = '⚠️ Coba Lagi';
-          }
-        } catch (e) { 
-            Swal.fire('Offline', 'Koneksi internet bermasalah. Server sibuk.', 'warning');
-            btn.disabled = false; btn.innerHTML = '🔍 Cek Bin Ini (Offline)'; 
-        }
+          const data=await sendRequest({action:'init',forceRefresh:forceRefresh,mode:mode});
+          if(mode!==appMode||epoch!==boardEpoch)return;
+          if(data.status!=='success')throw new Error(data.message||'Gagal memuat dashboard');
+          installSnapshot(data);
+          const binList=document.getElementById('binList');binList.innerHTML='';
+          data.bins.forEach(b=>{const opt=document.createElement('option');opt.value=b;binList.appendChild(opt);});
+          updateTaskBoard(data);dashboardNotice('Data siap. Scan memakai data sesi; hasil simpan diperiksa server. Refresh untuk perubahan pengguna lain.');
+        } catch(e) {
+          if(mode===appMode&&epoch===boardEpoch)dashboardNotice('Data awal belum termuat: '+(e.message||'Tekan Refresh.')+' Muat data dahulu sebelum scan.');
+        } finally {boardInFlight=false;if(mode!==appMode)fetchInitialData();drainPendingScan();}
       }
-
       async function fetchMasterMidsSilent() {
         try {
             const res = await sendRequest({ action: 'getMaster' });
             if(res.status === 'success') {
-                masterDataMids = res.masterMids || {};
+                masterDataMids = res.masterMids || {};masterLoaded=true;
             }
         } catch (e) {
             console.log("Gagal menarik master data di jalur belakang", e);
         }
       }
-
       function quickCheckBin(binStr) {
           document.getElementById('binCode').value = binStr;
           window.scrollTo({ top: 0, behavior: 'smooth' });
           handleFormSubmit(null);
       }
-
       function updateTaskBoard(data) {
-        if (!data.pickSlot) return; 
-
-        // RUMUS TRUE ACCURACY DIKUNCI HANYA KE PICK SLOT SAJA (Sesuai Permintaan)
-        currentAccuracyValue = data.pickSlot.pctMatch;
-
-        // Render Angka ke HTML
+        if (!data || !data.pickSlot) return; 
         document.getElementById('psTotal').innerText = data.pickSlot.belum; 
         document.getElementById('psDone').innerText = data.pickSlot.match;
         document.getElementById('psPctMatch').innerText = data.pickSlot.pctMatch + '%'; 
         document.getElementById('psPctBelum').innerText = data.pickSlot.pctBelum + '%';
         document.getElementById('psKosong').innerText = data.pickSlot.kosong; 
         document.getElementById('psPctKosong').innerText = data.pickSlot.pctKosong + '%';
-
         let psBelumHTML = ''; data.pickSlot.listBelum.forEach(x => { psBelumHTML += `<tr class="clickable-row" onclick="quickCheckBin('${x.bin}')" title="Klik untuk Audit Bin ini"><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-muted">${x.mid}</td></tr>`; });
         document.getElementById('psTableBelum').innerHTML = psBelumHTML || '<tr><td colspan="3" class="text-center text-success fw-bold py-3">🎉 Semua sudah divalidasi</td></tr>';
-
         let psNotMatchHTML = ''; data.pickSlot.listNotMatch.forEach(x => { psNotMatchHTML += `<tr class="clickable-row" onclick="quickCheckBin('${x.bin}')" title="Klik untuk Maintain / Update Bin ini"><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-danger fw-bold">${x.mid}</td></tr>`; });
         document.getElementById('psTableNotMatch').innerHTML = psNotMatchHTML || '<tr><td colspan="3" class="text-center text-success fw-bold py-3">🎉 Tidak ada Not Match</td></tr>';
-
         let psKosongHTML = ''; data.pickSlot.listEmpty.forEach(x => { psKosongHTML += `<tr class="clickable-row" onclick="quickCheckBin('${x.bin}')" title="Klik untuk Maintain / Update Bin ini"><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-warning text-dark fw-bold">${x.mid}</td></tr>`; });
         document.getElementById('psTableKosong').innerHTML = psKosongHTML || '<tr><td colspan="3" class="text-center text-muted fw-bold py-3">🎉 Tidak ada Item Kosong</td></tr>';
-
         document.getElementById('rbTotal').innerText = data.reserveBin.belum; 
         document.getElementById('rbDone').innerText = data.reserveBin.match;
         document.getElementById('rbPctMatch').innerText = data.reserveBin.pctMatch + '%'; 
         document.getElementById('rbPctBelum').innerText = data.reserveBin.pctBelum + '%';
         document.getElementById('rbKosong').innerText = data.reserveBin.kosong; 
         document.getElementById('rbPctKosong').innerText = data.reserveBin.pctKosong + '%';
-
         let rbBelumHTML = ''; data.reserveBin.listBelum.forEach(x => { rbBelumHTML += `<tr class="clickable-row" onclick="quickCheckBin('${x.bin}')" title="Klik untuk Audit Bin ini"><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-muted">${x.mid}</td></tr>`; });
         document.getElementById('rbTableBelum').innerHTML = rbBelumHTML || '<tr><td colspan="3" class="text-center text-success fw-bold py-3">🎉 Semua sudah divalidasi</td></tr>';
-
         let rbNotMatchHTML = ''; data.reserveBin.listNotMatch.forEach(x => { rbNotMatchHTML += `<tr class="clickable-row" onclick="quickCheckBin('${x.bin}')" title="Klik untuk Maintain / Update Bin ini"><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-danger fw-bold">${x.mid}</td></tr>`; });
         document.getElementById('rbTableNotMatch').innerHTML = rbNotMatchHTML || '<tr><td colspan="3" class="text-center text-success fw-bold py-3">🎉 Tidak ada Not Match</td></tr>';
-
         let rbKosongHTML = ''; data.reserveBin.listEmpty.forEach(x => { rbKosongHTML += `<tr class="clickable-row" onclick="quickCheckBin('${x.bin}')" title="Klik untuk Maintain / Update Bin ini"><td style="white-space: nowrap; padding-left: 12px;"><b style="color: #334155;">${x.bin}</b></td><td>${x.product}</td><td class="text-warning text-dark fw-bold">${x.mid}</td></tr>`; });
         document.getElementById('rbTableKosong').innerHTML = rbKosongHTML || '<tr><td colspan="3" class="text-center text-muted fw-bold py-3">🎉 Tidak ada Item Kosong</td></tr>';
       }
-
-      let html5QrcodeScanner;
-
-      function openScanner() {
-        document.getElementById('scannerOverlay').style.display = 'flex';
-        html5QrcodeScanner = new Html5QrcodeScanner(
-          "reader",
-          { fps: 10, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true },
-          false
-        );
-        html5QrcodeScanner.render(onScanSuccess, function(errorMessage) { });
+      // Kamera berjalan di halaman HTTPS terpisah; hanya kode bin yang dikembalikan.
+      // GitHub/hosting statis tidak membaca sheet, tidak memegang token Google, dan tidak POST data.
+      let scannerUrl='',scannerWindow=null,scannerToken='',scannerMode='SPR';
+      let pendingScan=null,lastScannerReceipt=null;
+      let camera=null,cameraStarting=false,cameraAccepted=false,cameraCancelled=false;
+      let scannerSession=null;
+      function safeScannerUrl(value){
+        try{const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password)return '';
+          u.hash='';return u.href;
+        }catch(e){return '';}
       }
-
-      function onScanSuccess(decodedText, decodedResult) {
-        document.getElementById('binCode').value = decodedText;
-        try { new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play().catch(()=>{}); } catch(e){}
-        stopScanner();
+      function openScanner(){
+        if(scanBusy||writeBusy)return;
+        if(unconfirmedWrite){Swal.fire('Menunggu konfirmasi','Periksa hasil simpan sebelumnya di sheet. Permintaan belum boleh dikirim ulang.','info');return;}
+        if(!scannerUrl){
+          Swal.fire('Buka melalui halaman scanner','Untuk menghubungkan kamera, buka halaman GitHub versi R11 lalu tekan Buka Webapp. Setelah itu pilih mode dan Scan Live.','info');return;
+        }
+        if(pendingScan){drainPendingScan();return;}
+        if(scannerWindow&&!scannerWindow.closed){
+          if(scannerToken){scannerWindow.focus();return;}
+          try{scannerWindow.close();}catch(e){}
+        }
+        clearTimeout(boardTimer);
+        scannerMode=appMode;
+        const bytes=new Uint32Array(4);crypto.getRandomValues(bytes);
+        scannerToken=Array.from(bytes,n=>n.toString(16).padStart(8,'0')).join('');
+        const target=new URL(scannerUrl);
+        target.searchParams.set('wmsVersion','R11');
+        target.hash=new URLSearchParams({wmsScanner:scannerToken,openerOrigin:location.origin}).toString();
+        scannerWindow=window.open(target.href,'_blank','popup,width=520,height=740');
+        if(!scannerWindow){scannerToken='';Swal.fire('Kamera belum terbuka','Izinkan pop-up untuk halaman WMS, lalu tekan Scan Live lagi.','info');}
+      }
+      function sendScannerAck(target,origin,type,token){
+        try{target.postMessage({type:type,token:token},origin);}catch(e){console.info('Tab kamera telah ditutup.');}
+      }
+      function drainPendingScan(){
+        if(!pendingScan||document.hidden||scanBusy||writeBusy||boardInFlight)return;
+        const item=pendingScan;pendingScan=null;
+        if(item.mode!==appMode){dashboardNotice('Mode berubah. Scan kembali pada mode yang dipilih.');return;}
+        document.getElementById('binCode').value=item.bin;
         handleFormSubmit(null);
       }
-
-      function stopScanner() {
-        document.getElementById('scannerOverlay').style.display = 'none';
-        if (html5QrcodeScanner) {
-          html5QrcodeScanner.clear().catch(e => console.log("Gagal mematikan scanner", e));
+      window.addEventListener('message',event=>{
+        if(!scannerUrl||event.source!==scannerWindow||event.origin!==new URL(scannerUrl).origin)return;
+        const data=event.data;
+        if(!data||data.type!=='WMS_SCAN_RESULT')return;
+        // Kiriman ulang kode barcode hanya diakui; tidak membuat request kedua.
+        if(lastScannerReceipt&&data.token===lastScannerReceipt.token){
+          sendScannerAck(event.source,event.origin,'WMS_SCAN_ACCEPTED',data.token);return;
         }
+        if(!scannerToken||data.token!==scannerToken)return;
+        if(typeof data.bin!=='string'||!data.bin.trim()||data.bin.length>120)return;
+        if(scanBusy||writeBusy||unconfirmedWrite||appMode!==scannerMode){
+          sendScannerAck(event.source,event.origin,'WMS_SCAN_REJECTED',scannerToken);return;
+        }
+        pendingScan={bin:data.bin.trim().toUpperCase(),mode:scannerMode};
+        lastScannerReceipt={token:scannerToken};scannerToken='';
+        document.getElementById('binCode').value=pendingScan.bin;
+        sendScannerAck(event.source,event.origin,'WMS_SCAN_ACCEPTED',data.token);
+        try{scannerWindow.close();}catch(e){}
+        if(document.hidden)dashboardNotice('Kode bin diterima. Kembali ke WMS untuk memeriksa data.');
+        else if(boardInFlight)dashboardNotice('Kode bin diterima. Menunggu permintaan dashboard selesai.');
+        drainPendingScan();
+      });
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden)drainPendingScan();});
+      window.addEventListener('focus',drainPendingScan);
+      function returnScanToWms(bin){
+        const message=document.getElementById('cameraMessage');
+        if(!window.opener||window.opener.closed){message.textContent='Halaman WMS sudah ditutup. Buka WMS lalu Scan Live kembali.';return;}
+        scannerSession.bin=bin;
+        window.opener.postMessage({type:'WMS_SCAN_RESULT',token:scannerSession.token,bin:bin},scannerSession.origin);
+        message.textContent='Terbaca: '+bin+'. Kembali ke tab WMS untuk pemeriksaan.';
+        document.getElementById('returnWms').hidden=false;
+        // Lepaskan tab WMS dari background tanpa menunggu ACK 5 detik.
+        // postMessage telah mengantrekan kode bin; penerima tetap memeriksa source/origin/token.
+        try{window.opener.focus();}catch(e){}
+        window.close();
       }
+      async function stopScanner(){
+        cameraCancelled=true;
+        const old=camera;
+        if(old&&old.isScanning){try{await old.stop();}catch(e){console.warn('Stop kamera:',e);}}
+      }
+      async function startLiveCamera(){
+        if(cameraStarting||(camera&&camera.isScanning))return;
+        if(!scannerSession)return;
+        if(scannerSession.bin){returnScanToWms(scannerSession.bin);return;}
+        cameraStarting=true;cameraCancelled=false;cameraAccepted=false;
+        document.getElementById('startCamera').hidden=true;
+        const message=document.getElementById('cameraMessage');
+        message.textContent='Meminta izin kamera…';
+        try{
+          if(!window.isSecureContext||!navigator.mediaDevices)throw new Error('Gunakan browser melalui HTTPS.');
+          if(typeof Html5Qrcode==='undefined')throw new Error('Library scanner belum termuat. Muat ulang halaman.');
+          if(!camera)camera=new Html5Qrcode('liveReader');
+          await camera.start({facingMode:'environment'},{fps:10,qrbox:(w,h)=>({width:Math.floor(Math.min(w*0.9,420)),height:Math.floor(Math.min(h*0.65,220))})},
+            async decodedText=>{
+              if(cameraAccepted||cameraCancelled)return;
+              const bin=String(decodedText).trim();if(!bin||bin.length>120)return;
+              cameraAccepted=true;
+              await stopScanner();
+              returnScanToWms(bin);
+            },()=>{});
+          if(cameraCancelled)await stopScanner();else message.textContent='Arahkan kamera ke barcode storage bin. Kode diproses otomatis.';
+        }catch(e){document.getElementById('startCamera').hidden=false;message.textContent='Kamera belum aktif: '+(e.message||e)+'. Izinkan kamera di pengaturan situs dan gunakan browser HP.';}
+        finally{cameraStarting=false;}
+      }
+      function bootWms(){
+        const badge=document.createElement('div');badge.textContent='WMS R11';
+        badge.style.cssText='position:fixed;bottom:4px;right:8px;z-index:10000;font-size:11px;color:#64748b;background:#fff;padding:2px 5px;border-radius:4px;';document.body.appendChild(badge);
+        if(inAppsScript()){
+          google.script.url.getLocation(loc=>{scannerUrl=safeScannerUrl(loc.parameter&&loc.parameter.scannerUrl||'');});
+          return;
+        }
+        document.getElementById('modeSelectionScreen').style.display='none';
+        document.getElementById('mainAppContent').style.display='none';
+        const panel=document.createElement('main');panel.style.cssText='max-width:520px;margin:32px auto;padding:24px;background:white;border-radius:20px;';document.body.appendChild(panel);
+        const hash=new URLSearchParams(location.hash.slice(1)),token=hash.get('wmsScanner'),origin=hash.get('openerOrigin');
+        if(token){
+          let valid=false;try{const o=new URL(origin);valid=o.protocol==='https:'&&o.origin===origin&&o.hostname.endsWith('.googleusercontent.com');}catch(e){}
+          if(!valid||!window.opener||!/^[a-f0-9]{32}$/.test(token)){panel.textContent='Buka kamera dari tombol Scan Live pada WMS R11.';return;}
+          scannerSession={token:token,origin:origin,accepted:false};
+          panel.innerHTML='<h2>Scan barcode bin</h2><p>Kamera live • tanpa foto atau upload gambar</p><div id="liveReader"></div><p id="cameraMessage" role="status">Membuka kamera…</p><button id="startCamera" class="btn btn-primary w-100" hidden>Aktifkan Kamera</button><button id="returnWms" class="btn btn-primary w-100" hidden>Kembali ke WMS</button><button id="closeCamera" class="btn btn-outline-secondary w-100 mt-2">Tutup Kamera</button>';
+          document.getElementById('startCamera').onclick=startLiveCamera;
+          document.getElementById('returnWms').onclick=()=>{if(scannerSession.bin)returnScanToWms(scannerSession.bin);};
+          document.getElementById('closeCamera').onclick=async()=>{await stopScanner();window.close();};
+          window.addEventListener('message',event=>{
+            if(event.source!==window.opener||event.origin!==scannerSession.origin)return;
+            const d=event.data;if(!d||d.token!==scannerSession.token)return;
+            if(d.type==='WMS_SCAN_ACCEPTED'){scannerSession.accepted=true;document.getElementById('cameraMessage').textContent='Kode diterima WMS. Kembali ke tab WMS untuk validasi.';window.close();}
+            if(d.type==='WMS_SCAN_REJECTED')document.getElementById('cameraMessage').textContent='WMS sedang memproses atau mode berubah. Tutup kamera dan buka Scan Live kembali.';
+          });
+          document.addEventListener('visibilitychange',()=>{if(document.hidden)stopScanner();});
+          startLiveCamera(); // Langsung mencoba kamera; tombol cadangan hanya jika browser menolak.
+          return;
+        }
+        panel.innerHTML='<h2>WMS Bin Checker</h2><p>Dashboard dan penyimpanan berjalan di webapp. Halaman ini menghubungkan kamera live HP.</p><label for="deploymentUrl">Alamat webapp Apps Script (/exec)</label><input id="deploymentUrl" class="form-control mt-2 mb-3" type="url"><button id="launchWms" class="btn btn-primary w-100">Buka Webapp</button><p id="launchMessage" class="mt-3" role="status">Sesudah WMS terbuka, pilih SPR/ECERAN lalu tekan Scan Live.</p>';
+        const input = document.getElementById('deploymentUrl');
 
+        // Selalu gunakan deployment yang ditentukan pada script.
+        input.value = WEBAPP_URL;
+        // Langsung membuka webapp baru dengan koneksi kamera GitHub.
+        const targetWebapp = new URL(WEBAPP_URL);
+
+        const scannerPage = new URL(window.location.href);
+        scannerPage.hash = '';
+        scannerPage.search = '';
+
+        targetWebapp.searchParams.set('scannerUrl', scannerPage.href);
+        window.location.replace(targetWebapp.href);
+        return;
+        document.getElementById('launchWms').onclick=()=>{
+          try{
+            const u=new URL(input.value.trim());
+            if(u.protocol!=='https:'||u.hostname!=='script.google.com'||!/^\/macros\/s\/[^/]+\/exec$/.test(u.pathname))throw new Error('Gunakan URL deployment Apps Script berakhiran /exec.');
+            const scanner=new URL(location.href);scanner.hash='';scanner.search='';
+            u.searchParams.set('scannerUrl',scanner.href);
+            try{localStorage.setItem('wmsR8Deployment',input.value.trim());}catch(e){}
+            location.assign(u.href);
+          }catch(e){document.getElementById('launchMessage').textContent=e.message;}
+        };
+      }
       async function handleFormSubmit(e) {
-        if(e) e.preventDefault(); document.activeElement.blur();
+        if(e)e.preventDefault();
+        if(scanBusy||writeBusy)return;
+        if(document.hidden||boardInFlight){
+          const value=document.getElementById('binCode').value.trim();
+          if(value)pendingScan={bin:value,mode:appMode};
+          return;
+        }
+        document.activeElement.blur();
         const binVal = document.getElementById('binCode').value.trim(); if(!binVal) return;
+        scanBusy=true;
         const btn = document.getElementById('btnSubmit'); btn.innerHTML = '⏳ Memeriksa...'; btn.disabled = true;
-
         try {
           const response = await sendRequest({ action: 'checkBin', bin: binVal });
-
           if (response.status === 'already_scanned') {
-             function createScannedCard(item, color, icon) { return `<div style="border-left: 6px solid ${color}; border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);"><div style="display: flex; gap: 10px;"><div style="font-size: 1.2rem;">${icon}</div><div><div style="font-weight: 800; color: #1e293b; font-size: 1.05rem; line-height: 1.3; margin-bottom: 4px;">${item.name}</div><div style="color: #64748b; font-size: 0.85rem;">Deskripsi: <b style="color: #0f172a; font-size: 0.95rem;">${item.mid}</b></div>${item.remark ? `<div style="color: #b91c1c; font-size: 0.8rem; font-weight: 700; margin-top: 5px; background: #fef2f2; padding: 4px 8px; border-radius: 4px; display: inline-block;">Ket: ${item.remark}</div>` : ''}</div></div></div>`; }
+             function createScannedCard(item, color, icon) { return `<div style="border-left: 6px solid ${color}; border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);"><div style="display: flex; gap: 10px;"><div style="font-size: 1.2rem;">${icon}</div><div><div style="font-weight: 800; color: #1e293b; font-size: 1.05rem; line-height: 1.3; margin-bottom: 4px;">${item.name}</div><div style="color: #64748b; font-size: 0.85rem;">Deskripsi: <b style="color: #0f172a; font-size: 0.95rem;">${item.mid}</b></div>${item.remark ? `<div style="color: #b91c1c; font-size: 0.8rem; font-weight: 700; margin-top: 5px; background: #fef2f2; padding: 4px 8px; border-radius: 4px; display: inline-block;">Ket: ${item.remark}</div>` : '<div style="color: #475569; font-size: 0.75rem; margin-top: 5px; font-weight:600;">📍 Bin: '+ (item.binLbl || binVal) +'</div>'}</div></div></div>`; }
              let htmlSummary = `<div style="text-align:left; max-height: 50vh; overflow-y: auto; padding-right: 5px;">`;
              if(response.summary.unaudited && response.summary.unaudited.length > 0) { htmlSummary += `<div style="font-weight: 900; color: #475569; font-size: 0.85rem; margin-bottom: 8px; margin-top: 5px;">⏳ BELUM DIAUDIT</div>`; response.summary.unaudited.forEach(item => htmlSummary += createScannedCard(item, '#94a3b8', '⏳')); }
              if(response.summary.match.length > 0) { htmlSummary += `<div style="font-weight: 900; color: #15803d; font-size: 0.85rem; margin-bottom: 8px; margin-top: 15px;">✅ PRODUK MATCH</div>`; response.summary.match.forEach(item => htmlSummary += createScannedCard(item, '#22c55e', '👍')); }
              if(response.summary.notmatch.length > 0) { htmlSummary += `<div style="font-weight: 900; color: #b91c1c; font-size: 0.85rem; margin-bottom: 8px; margin-top: 15px;">❌ PRODUK NOT MATCH</div>`; response.summary.notmatch.forEach(item => htmlSummary += createScannedCard(item, '#ef4444', '⚠️')); }
              if(response.summary.empty.length > 0) { htmlSummary += `<div style="font-weight: 900; color: #b45309; font-size: 0.85rem; margin-bottom: 8px; margin-top: 15px;">📭 ITEM KOSONG</div>`; response.summary.empty.forEach(item => htmlSummary += createScannedCard(item, '#eab308', '👻')); }
              htmlSummary += `</div>`;
-             
              Swal.fire({ title: `<span style="font-weight: 900;">Bin <b style="color: #b71c1c;">${response.bin}</b><br>Sudah Diaudit!</span>`, html: htmlSummary, showCancelButton: true, showConfirmButton: true, confirmButtonText: '🔄 Update MID Baru', cancelButtonText: 'Tutup', confirmButtonColor: '#3b82f6', cancelButtonColor: '#64748b', reserveButtons: true, width: '95%' 
              }).then((result) => {
                if (result.isConfirmed) { setTimeout(() => { showInputMidPopup(response.bin, response.products); }, 350); } else { document.getElementById('binCode').value = ''; }
              });
           } 
           else if (response.status === 'bin_not_found_stock') { showInputMidPopup(response.bin, null); }
-          else if (response.type === 'POPUP_LIST') { showAuditListPopup(binVal, response.products, response.suffix); } 
+          else if (response.type === 'POPUP_LIST') { showAuditListPopup(response.bin || binVal, response.products, response.suffix); } 
           else if (response.status === 'not_found') {
              Swal.fire({ icon: 'info', title: response.title, html: response.message, confirmButtonColor: '#3b82f6' });
              document.getElementById('binCode').value = '';
           }
           else { Swal.fire('Error!', response.message, 'error'); }
-        } catch (error) { Swal.fire('Error', 'Gagal terhubung ke Database.', 'error'); } 
-        finally { btn.innerHTML = '🔍 Cek Bin Ini'; btn.disabled = false; }
+        } catch (error) { Swal.fire('Koneksi belum selesai', error.message||'Gagal terhubung ke Database.', 'warning'); } 
+        finally { scanBusy=false;btn.innerHTML = '🔍 Cek Bin Ini'; btn.disabled = false; }
       }
-
-      function toggleRemark(idx, status, suffix) {
-        const input12 = document.getElementById('remark_'+idx), checkArea345 = document.getElementById('check_area_'+idx);
-        if(status === 'notmatch') {
-            if (['03','04','05'].includes(suffix)) { checkArea345.style.display = 'block'; document.getElementById('verified_'+idx).value = 'false'; } else { input12.style.display = 'block'; input12.focus(); }
-        } else {
-            if (['03','04','05'].includes(suffix)) { checkArea345.style.display = 'none'; document.getElementById('verified_'+idx).value = 'true'; document.getElementById('stock_status_'+idx).innerHTML = ''; } else { input12.style.display = 'none'; input12.value = ''; }
-        }
+      function toggleRemark(idx,status,suffix){
+        const input=document.getElementById('remark_'+idx);
+        if(input)input.style.display='block'; // Keterangan boleh diisi untuk Match / Not Match.
+        const check=document.getElementById('check_area_'+idx);if(check)check.style.display='none';
       }
-
       async function verifyStock(bin, idx) {
          const actualMid = document.getElementById('actual_mid_'+idx).value.trim(), statusLabel = document.getElementById('stock_status_'+idx);
          if (!actualMid) { statusLabel.innerHTML = '<span class="text-danger fw-bold">⚠ Masukkan Angka Product!</span>'; return; }
@@ -404,8 +639,11 @@
             } else { statusLabel.innerHTML = '<span class="text-danger fw-bold">✖ ' + checkRes.message + '</span>'; document.getElementById('verified_'+idx).value = 'false'; }
          } catch (e) { statusLabel.innerHTML = '<span class="text-danger fw-bold">✖ Error.</span>'; }
       }
-
       function showAuditListPopup(bin, products, suffix) {
+        bin=String(bin||'').trim().toUpperCase();
+        if(!bin||bin==='UNDEFINED'||bin==='NULL'){
+          Swal.fire('Scan Ulang','Kode bin belum tersedia. Tutup popup lalu scan ulang.','warning');return;
+        }
         let htmlContent = '<div style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; text-align: left; padding-right: 5px;">';
         products.forEach((p, idx) => {
            let mCheck = '', nmCheck = '', eCheck = '', badgeHTML = '';
@@ -413,23 +651,24 @@
            else if (p.status === 'notmatch') { nmCheck = 'checked'; badgeHTML = `<span style="background:#ef4444; color:white; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;">❌ Sudah Teraudit</span>`; }
            else if (p.status === 'empty') { eCheck = 'checked'; badgeHTML = `<span style="background:#f59e0b; color:white; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px;">📭 Sudah Teraudit</span>`; }
            else { mCheck = 'checked'; }
-
-           let remarkValue = p.remark && p.remark !== 'ITEM KOSONG' ? p.remark : '';
-           let remarkDisplay = nmCheck === 'checked' ? 'block' : 'none';
-
+           let remarkValue = String(p.remark && p.remark !== 'ITEM KOSONG' ? p.remark : '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+           let remarkDisplay = 'block';
+           let lblBinDetail = p.binLabel ? p.binLabel : bin;
            htmlContent += `
              <div style="border: 2px solid #e2e8f0; padding: 16px; margin-bottom: 15px; border-radius: 14px; background: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                <div style="margin-bottom: 12px; border-bottom: 2px dashed #cbd5e1; padding-bottom: 12px;">
                  <div style="display: flex; align-items: center; flex-wrap: wrap;"><div style="background: #eff6ff; color: #1d4ed8; font-size: 1.4rem; font-weight: 900; padding: 6px 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #bfdbfe;">🏷️ ${p.product}</div>${badgeHTML}</div>
                  <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a;">${p.mid}</div>
+                 <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-top:4px;">📍 Bin Spesifik: ${lblBinDetail}</div>
                </div>
                <div class="custom-radio-group">
                  <input type="radio" class="custom-radio-btn" name="status_${idx}" id="m_${idx}" value="match" ${mCheck} onchange="toggleRemark(${idx}, 'match', '${suffix}')"><label class="custom-radio-label label-match" for="m_${idx}">✔ Match</label>
                  <input type="radio" class="custom-radio-btn" name="status_${idx}" id="nm_${idx}" value="notmatch" ${nmCheck} onchange="toggleRemark(${idx}, 'notmatch', '${suffix}')"><label class="custom-radio-label label-notmatch" for="nm_${idx}">✖ Not Match</label>
                  <input type="radio" class="custom-radio-btn" name="status_${idx}" id="e_${idx}" value="empty" ${eCheck} onchange="toggleRemark(${idx}, 'empty', '${suffix}')"><label class="custom-radio-label label-empty" for="e_${idx}">📭 Kosong</label>
                </div>
+               <input type="hidden" id="lblBin_${idx}" value="${lblBinDetail}">
                <input type="number" pattern="[0-9]*" inputmode="numeric" id="qty_${idx}" class="form-control form-control-lg mt-3" placeholder="📦 Isi Qty (Opsional)" style="border: 2px solid #cbd5e1; border-radius: 10px; font-weight: 700;">
-               <input type="text" id="remark_${idx}" class="form-control form-control-lg mt-2" value="${remarkValue}" placeholder="✍️ Keterangan wajib..." style="display:${remarkDisplay}; border: 2px solid #ef4444; border-radius: 10px; font-weight: 700; background-color: #fef2f2;">
+               <input type="text" id="remark_${idx}" class="form-control form-control-lg mt-2" value="${remarkValue}" placeholder="✍️ Keterangan (opsional, termasuk Match)" style="display:${remarkDisplay}; border: 2px solid #ef4444; border-radius: 10px; font-weight: 700; background-color: #fef2f2;">
                <div id="check_area_${idx}" style="display:none; margin-top: 15px; background: #fffbeb; padding: 15px; border-radius: 12px; border: 2px solid #fde68a;">
                   <label class="fw-bold mb-2 text-danger" style="font-size:0.85rem;">⚠️ Wajib Cek Aktual Stok</label>
                   <input type="number" pattern="[0-9]*" inputmode="numeric" id="actual_mid_${idx}" class="form-control form-control-lg mb-2" placeholder="Angka Product..." style="font-weight: 700; border-radius: 10px;">
@@ -438,69 +677,71 @@
                </div>
              </div>`;
         });
-        
         if (['01', '02'].includes(suffix) && products.length < 2) {
            htmlContent += `<button type="button" class="btn btn-outline-primary w-100 mt-3 mb-2 fw-bold" style="border-width: 2px; border-style: dashed; padding: 12px; border-radius: 12px;" onclick="Swal.close(); setTimeout(() => { showAddManualPopup('${bin}'); }, 400);">➕ Tambah Product Fisik ke-2 (Baris Baru)</button>`;
         }
-        
         htmlContent += '</div>';
-
-        Swal.fire({ title: `<span style="font-size:1.3rem; font-weight: 900;">Audit Bin <b style="color:#d32f2f; background: #fee2e2; padding: 2px 8px; border-radius: 6px;">${bin}</b></span>`, html: htmlContent, showCancelButton: true, confirmButtonColor: '#d32f2f', confirmButtonText: '💾 SIMPAN AUDIT', cancelButtonText: 'Batal', width: '95%', customClass: { popup: 'rounded-4' },
+        Swal.fire({ title: `<span style="font-size:1.3rem; font-weight: 900;">Audit Group Bin <b style="color:#d32f2f; background: #fee2e2; padding: 2px 8px; border-radius: 6px;">${bin}</b></span>`, html: htmlContent, showCancelButton: true, confirmButtonColor: '#d32f2f', confirmButtonText: '💾 SIMPAN AUDIT', cancelButtonText: 'Batal', width: '95%', customClass: { popup: 'rounded-4' },
           preConfirm: () => {
             let auditData = [];
             for(let i=0; i<products.length; i++) {
               let statusVal = document.getElementById('m_'+i).checked ? 'match' : (document.getElementById('nm_'+i).checked ? 'notmatch' : 'empty');
               let qtyVal = document.getElementById('qty_'+i) ? document.getElementById('qty_'+i).value.trim() : '';
-              if (['03','04','05'].includes(suffix)) {
-                  let isVerified = document.getElementById('verified_'+i).value === 'true', remarkVal = document.getElementById('remark_'+i) ? document.getElementById('remark_'+i).value : '';
-                  if (statusVal === 'notmatch' && !isVerified) { Swal.showValidationMessage('Pastikan status "Not Match" sudah dicek ke Stok!'); return false; }
-                  auditData.push({ row: products[i].row, product: products[i].product, mid: products[i].mid, status: statusVal, remark: remarkVal, qty: qtyVal });
-              } else {
-                  let remark = document.getElementById('remark_'+i) ? document.getElementById('remark_'+i).value.trim() : '';
-                  if(statusVal === 'notmatch' && remark === '') { Swal.showValidationMessage('Keterangan WAJIB diisi untuk produk Not Match!'); return false; }
-                  auditData.push({ row: products[i].row, product: products[i].product, mid: products[i].mid, status: statusVal, remark: remark, qty: qtyVal });
-              }
+              let lblBin = document.getElementById('lblBin_'+i).value;
+              const remark=document.getElementById('remark_'+i)?document.getElementById('remark_'+i).value.trim():'';
+              auditData.push({row:products[i].row,binLabel:lblBin,product:products[i].product,mid:products[i].mid,status:statusVal,remark:remark,qty:qtyVal});
             } return auditData;
           }
         }).then(async (result) => {
           if (result.isConfirmed) {
-             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-             try {
-                 const saveRes = await sendRequest({ action: 'submitBinAudit', bin: bin, auditData: result.value });
-                 if(saveRes.status === 'success') { 
-                     updateTaskBoard(saveRes.stats); 
-                     Swal.fire('Tersimpan!', saveRes.message, 'success'); 
-                     document.getElementById('binCode').value = ''; 
-                 } else { 
-                     Swal.fire('Gagal', saveRes.message, 'error'); 
-                 }
-             } catch(err) {
-                 Swal.fire('Error Server', 'Terjadi kesalahan jaringan, silakan muat ulang (refresh) halaman.', 'error');
-             }
+             await submitAuditWithConfirmation(bin,result.value);
           }
         });
       }
-
+      async function submitAuditWithConfirmation(bin,auditData) {
+        if(writeBusy||unconfirmedWrite){Swal.hideLoading();Swal.fire('Periksa simpan sebelumnya','Konfirmasi sebelumnya belum diterima. Periksa hasil di sheet sebelum mengirim ulang.','warning');return;}
+        Swal.fire({title:'Menyimpan...',allowOutsideClick:false,allowEscapeKey:false,didOpen:()=>{if(writeBusy)Swal.showLoading();}});
+        let res;
+        try {
+          res=await sendRequest({action:'submitBinAudit',bin:bin,auditData:auditData});
+        } catch(e) {
+          Swal.hideLoading();
+          Swal.fire('Konfirmasi belum diterima','Respons server gagal diterima. Data mungkin sudah tersimpan. Periksa bin sebelum mencoba kembali. '+(e.message||String(e)),'warning');
+          return;
+        }
+        if(res&&res.status==='partial'){Swal.fire('Audit tersimpan; Logs bermasalah',res.message,'warning');return;}
+        if(!res||res.status!=='success'){
+          Swal.fire('Belum berhasil',res&&res.message?res.message:'Respons server tidak lengkap. Periksa status bin sebelum mengulang.','warning');return;
+        }
+        // Tampilkan hasil simpan lebih dahulu, terpisah dari pemutakhiran dashboard.
+        Swal.fire('Tersimpan!',res.message||'Validasi tersimpan.','success');
+        try {
+          document.getElementById('binCode').value='';
+          if(res.stats)updateTaskBoard(res.stats);else refreshBoardAfterSave();
+        } catch(e) {
+          console.error('Dashboard setelah simpan:',e);
+          // Error tampilan tidak mengubah konfirmasi simpan menjadi gagal.
+        }
+      }
       function showInputMidPopup(bin, products) {
+        if(!masterLoaded)fetchMasterMidsSilent();
         const suffix = String(bin).trim().slice(-2);
         const maxItems = (suffix === '01' || suffix === '02') ? 2 : 1;
         let htmlContent = '<div style="text-align: left; max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 5px;">';
-
         if (products && products.length > 0) {
           htmlContent += `<div style="font-size:0.9rem; font-weight:800; color:#334155; margin-bottom:12px;">Pilih Status Aktual Fisik:</div>`;
           products.forEach((p, idx) => {
             let isMatch = (p.status === 'match' || p.status === null);
             let isEdit = (p.status === 'notmatch');
             let isEmpty = (p.status === 'empty');
-            
             let displayEditPanel = (isEdit || isEmpty) ? 'block' : 'none';
             let displayInputMid = isEdit ? 'block' : 'none';
-
+            let lblBinDetail = p.binLabel ? p.binLabel : bin;
             htmlContent += `
               <div style="border: 1px solid #cbd5e1; padding: 15px; margin-bottom: 12px; border-radius: 12px; background: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.04);">
                 <div style="font-weight: 900; color: #1e3a8a; font-size: 1.05rem; margin-bottom: 4px; line-height: 1.3;">🏷️ ${p.product}</div>
                 <div style="color: #64748b; font-size: 0.8rem; margin-bottom: 12px; font-weight: 600;">MID Saat Ini: <b style="color:#0f172a;">${p.mid}</b></div>
-
+                <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom:12px;">📍 Bin Spesifik: ${lblBinDetail}</div>
                 <div class="d-grid gap-2 mb-2">
                   <input type="radio" class="btn-check" name="act_${idx}" id="act_match_${idx}" value="match" autocomplete="off" ${isMatch ? 'checked' : ''} onchange="toggleEditPanel(${idx}, 'match')">
                   <label class="btn btn-outline-success text-start fw-bold" for="act_match_${idx}">✔ Ada Barang / Match</label>
@@ -509,7 +750,6 @@
                   <input type="radio" class="btn-check" name="act_${idx}" id="act_empty_${idx}" value="empty" autocomplete="off" ${isEmpty ? 'checked' : ''} onchange="toggleEditPanel(${idx}, 'empty')">
                   <label class="btn btn-outline-warning text-dark text-start fw-bold" for="act_empty_${idx}">📭 Item Kosong</label>
                 </div>
-
                 <div id="edit_panel_${idx}" style="display:${displayEditPanel}; margin-top:15px; background:#f8fafc; padding:12px; border-radius:10px; border:1px dashed #94a3b8;">
                   <div id="new_mid_container_${idx}" style="display:${displayInputMid};">
                     <label class="fw-bold text-primary" style="font-size:0.8rem; margin-bottom:5px;">Input MID Fisik Baru:</label>
@@ -520,10 +760,10 @@
                   <input type="number" pattern="[0-9]*" inputmode="numeric" id="qty_${idx}" class="form-control form-control-lg" placeholder="📦 Isi Qty..." style="font-weight:700;">
                 </div>
                 <input type="hidden" id="row_${idx}" value="${p.row}">
+                <input type="hidden" id="lblBin_${idx}" value="${lblBinDetail}">
               </div>`;
           });
         }
-
         if (!products || products.length < maxItems) {
           htmlContent += `
             <div style="border: 2px dashed #3b82f6; padding: 15px; border-radius: 12px; background: #eff6ff; margin-top: 15px;">
@@ -536,7 +776,6 @@
             </div>`;
         }
         htmlContent += '</div>';
-
         Swal.fire({ title: `<span style="font-weight: 900; font-size: 1.25rem;">Maintain <b style="color: #d32f2f;">${bin}</b></span>`, html: htmlContent, showCancelButton: true, confirmButtonColor: '#16a34a', cancelButtonColor: '#64748b', confirmButtonText: '💾 Simpan Perubahan', cancelButtonText: 'Batal', width: '95%', customClass: { popup: 'rounded-4' },
           preConfirm: () => {
             let updates = [];
@@ -544,44 +783,41 @@
               for(let i=0; i<products.length; i++) {
                 let action = document.querySelector(`input[name="act_${i}"]:checked`).value;
                 let row = document.getElementById(`row_${i}`).value;
+                let lblBin = document.getElementById(`lblBin_${i}`).value;
                 let newMid = action === 'edit' ? document.getElementById(`new_mid_${i}`).value.trim() : '';
                 let qty = (action === 'edit' || action === 'empty' || action === 'match') ? document.getElementById(`qty_${i}`).value.trim() : '';
-                
                 if (action === 'edit' && !newMid) { Swal.showValidationMessage('⚠️ MID Baru wajib diisi jika pilih Ganti MID!'); return false; }
-                if (action === 'edit' && newMid && Object.keys(masterDataMids).length > 0 && !masterDataMids[newMid]) { Swal.showValidationMessage(`⚠️ MID ${newMid} tidak terdaftar!`); return false; }
-                
-                updates.push({ row: row, action: action, newMid: newMid, qty: qty, oldProd: products[i].product, oldMid: products[i].mid });
+                updates.push({ row: row, action: action, newMid: newMid, qty: qty, oldProd: products[i].product, oldMid: products[i].mid, binLabel: lblBin });
               }
             }
             let addMid = document.getElementById('add_mid') ? document.getElementById('add_mid').value.trim() : '';
             let addQty = document.getElementById('add_qty') ? document.getElementById('add_qty').value.trim() : '';
             let addData = null;
             if (addMid) {
-               if (Object.keys(masterDataMids).length > 0 && !masterDataMids[addMid]) { Swal.showValidationMessage(`⚠️ MID Baru ${addMid} tidak terdaftar!`); return false; }
                addData = { newMid: addMid, qty: addQty };
             }
             return { updates: updates, addData: addData };
           }
         }).then(async (result) => {
            if (result.isConfirmed) {
-              Swal.fire({ title: 'Memproses Data...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+              Swal.fire({ title: 'Memproses Data...', allowOutsideClick: false, didOpen: () => { if(writeBusy)Swal.showLoading(); }});
               try {
                   const res = await sendRequest({ action: 'processMaintainBin', bin: bin, maintainData: result.value });
                   if(res.status === 'success') { 
-                      updateTaskBoard(res.stats); 
-                      Swal.fire({ icon: 'success', title: 'Berhasil!', html: res.message, confirmButtonColor: '#16a34a' }); 
+                      Swal.fire({ icon: 'success', title: 'Berhasil!', html: res.message, confirmButtonColor: '#16a34a' });
+                      try{if(res.stats)updateTaskBoard(res.stats);else refreshBoardAfterSave();}catch(e){console.error('Dashboard:',e);} 
                       document.getElementById('binCode').value = ''; 
                   } else { 
-                      Swal.fire('Gagal', res.message, 'error'); 
+                      Swal.fire(res.status==='partial'?'Audit tersimpan; Logs bermasalah':'Periksa data', res.message, 'warning'); 
                   }
               } catch(err) {
-                  Swal.fire('Error Server', 'Terjadi kesalahan jaringan, silakan muat ulang (refresh) halaman.', 'error');
+                  Swal.fire('Konfirmasi belum diterima', 'Data mungkin sudah masuk. Periksa bin sebelum mengulang. '+(err.message||String(err)), 'warning');
               }
            } else { document.getElementById('binCode').value = ''; }
         });
       }
-
       function showAddManualPopup(bin) {
+        if(!masterLoaded)fetchMasterMidsSilent();
         Swal.fire({
           title: `<span style="font-weight: 900; font-size: 1.25rem;">Tambah Produk ke <b style="color: #d32f2f;">${bin}</b></span>`,
           html: `
@@ -596,74 +832,63 @@
           preConfirm: () => {
             const midVal = document.getElementById('new_mid_input').value.trim();
             if (!midVal) { Swal.showValidationMessage('⚠️ Angka Product wajib diisi!'); return false; }
-            if (midVal && Object.keys(masterDataMids).length > 0 && !masterDataMids[midVal]) { Swal.showValidationMessage('⚠️ Angka Product tidak ditemukan di Master Data!'); return false; }
             return { isKosong: false, mid: midVal, emptyRows: [], actionMode: 'append' }; 
           }
         }).then(async (result) => {
           if (result.isConfirmed) {
-             Swal.fire({ title: 'Menambahkan Baris Baru...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+             Swal.fire({ title: 'Menambahkan Baris Baru...', allowOutsideClick: false, didOpen: () => { if(writeBusy)Swal.showLoading(); }});
              try {
-                 const addRes = await sendRequest({ action: 'addNewBin', bin: bin, mid: result.value.mid, isEmpty: false, emptyRows: [], actionMode: 'append' });
+                 const addRes = await sendRequest({ action: 'processMaintainBin', bin: bin, maintainData: {updates:[],addData:{newMid:result.value.mid}} });
                  if(addRes.status === 'success') { 
-                     updateTaskBoard(addRes.stats); 
-                     Swal.fire({ icon: 'success', title: 'Berhasil!', html: addRes.message, confirmButtonColor: '#16a34a' }); 
+                     Swal.fire({ icon: 'success', title: 'Berhasil!', html: addRes.message, confirmButtonColor: '#16a34a' });
+                     try{if(addRes.stats)updateTaskBoard(addRes.stats);else refreshBoardAfterSave();}catch(e){console.error('Dashboard:',e);} 
                      document.getElementById('binCode').value = ''; 
                  } else { 
-                     Swal.fire('Gagal', addRes.message, 'error'); 
+                     Swal.fire(addRes.status==='partial'?'Audit tersimpan; Logs bermasalah':'Periksa data', addRes.message, 'warning'); 
                  }
              } catch(err) {
-                 Swal.fire('Error Server', 'Terjadi kesalahan jaringan, silakan muat ulang (refresh) halaman.', 'error');
+                 Swal.fire('Konfirmasi belum diterima', 'Data mungkin sudah masuk. Periksa bin sebelum mengulang. '+(err.message||String(err)), 'warning');
              }
           }
         });
       }
-
       function toggleEditPanel(idx, act) {
          document.getElementById(`edit_panel_${idx}`).style.display = (act === 'edit' || act === 'empty' || act === 'match') ? 'block' : 'none';
          if (act === 'edit') { document.getElementById(`new_mid_container_${idx}`).style.display = 'block'; liveLookupCard(idx); } 
          else { document.getElementById(`new_mid_container_${idx}`).style.display = 'none'; }
       }
-
       function liveLookupCard(idx) {
           const val = document.getElementById(`new_mid_${idx}`).value.trim(), disp = document.getElementById(`live_name_${idx}`);
           if (!val) { disp.style.display = 'none'; return; }
-          
           if(Object.keys(masterDataMids).length === 0) {
              disp.style.display = 'block'; disp.innerHTML = `⏳ Menunggu Master Data...`; disp.className = 'text-warning fw-bold mb-2'; return;
           }
-          
-          disp.style.display = 'block'; disp.innerHTML = masterDataMids[val] ? `✅ ${masterDataMids[val]}` : `❌ Product Tidak terdaftar!`;
+          disp.style.display = 'block'; disp.innerHTML = masterDataMids[val] ? `✅ ${masterDataMids[val]}` : `ℹ️ Deskripsi belum tersedia di Bin Mat`;
           disp.className = masterDataMids[val] ? 'text-success fw-bold mb-2' : 'text-danger fw-bold mb-2';
       }
-
       function liveLookupAdd() {
           const val = document.getElementById(`add_mid`).value.trim(), disp = document.getElementById(`add_name`);
           if (!val) { disp.style.display = 'none'; return; }
-          
           if(Object.keys(masterDataMids).length === 0) return;
-          
-          disp.style.display = 'block'; disp.innerHTML = masterDataMids[val] ? `✅ ${masterDataMids[val]}` : `❌ Product Tidak terdaftar!`;
+          disp.style.display = 'block'; disp.innerHTML = masterDataMids[val] ? `✅ ${masterDataMids[val]}` : `ℹ️ Deskripsi belum tersedia di Bin Mat`;
           disp.className = masterDataMids[val] ? 'text-success fw-bold mb-2' : 'text-danger fw-bold mb-2';
       }
-      
       function liveLookupMID() {
         const inputVal = document.getElementById('new_mid_input').value.trim(), displayDiv = document.getElementById('live_product_name');
         if (!inputVal) { displayDiv.style.display = 'none'; displayDiv.innerHTML = ''; return; }
         displayDiv.style.display = 'block';
-        
         if(Object.keys(masterDataMids).length === 0) return;
-        
         if (masterDataMids[inputVal]) {
           displayDiv.innerHTML = '✅ ' + masterDataMids[inputVal]; displayDiv.style.color = '#15803d'; displayDiv.style.background = '#f0fdf4'; displayDiv.style.borderColor = '#bbf7d0';
         } else {
-          displayDiv.innerHTML = '❌ Product tidak ditemukan!'; displayDiv.style.color = '#b91c1c'; displayDiv.style.background = '#fef2f2'; displayDiv.style.borderColor = '#fecaca';
+          displayDiv.innerHTML = 'ℹ️ Deskripsi belum tersedia di Bin Mat'; displayDiv.style.color = '#b91c1c'; displayDiv.style.background = '#fef2f2'; displayDiv.style.borderColor = '#fecaca';
         }
       }
-
       function backToMenu() {
         document.getElementById('mainAppContent').style.display = 'none';
         document.getElementById('modeSelectionScreen').style.display = 'flex';
       }
+      bootWms();
     </script>
   </body>
 </html>
