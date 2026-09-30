@@ -180,7 +180,7 @@
       let scanBusy=false, writeBusy=false, boardEpoch=0;
       let boardTimer=null,boardInFlight=false,boardDirty=false,lastActivity=0,masterLoaded=false;
       // R8: tidak ada fetch lintas domain. Semua operasi sheet melalui google.script.run.
-      const WMS_REVISION='BINMAT-R11';
+      const WMS_REVISION='BINMAT-R12';
       let unconfirmedWrite=false;
       const snapshots=Object.create(null);
       function installSnapshot(data){
@@ -378,7 +378,13 @@ function snapshotStats(records) {
           installSnapshot(data);
           const binList=document.getElementById('binList');binList.innerHTML='';
           data.bins.forEach(b=>{const opt=document.createElement('option');opt.value=b;binList.appendChild(opt);});
-          updateTaskBoard(data);dashboardNotice('Data siap. Scan memakai data sesi; hasil simpan diperiksa server. Refresh untuk perubahan pengguna lain.');
+          updateTaskBoard(snapshotBoard(mode));
+          const info=data.sourceInfo;
+          let sourceEl=document.getElementById('wmsDataSource');
+          if(!sourceEl){sourceEl=document.createElement('div');sourceEl.id='wmsDataSource';sourceEl.style.cssText='padding:10px 16px;background:#f1f5f9;font-size:12px;overflow-wrap:anywhere;';document.getElementById('mainAppContent').prepend(sourceEl);}
+          const stats=snapshotBoard(mode).pickSlot;
+          sourceEl.textContent=info?'Sumber: '+info.spreadsheetName+' | '+info.sheetName+' | ID: '+info.spreadsheetId+' | '+info.rowsWithBin+' baris berisi bin | Target unik: '+stats.target+' | Belum validasi: '+stats.belum+' | Kode produk kosong: '+info.missingMid+' | '+data.revision:'Server belum mengirim identitas sumber. Update Code.gs dan deployment ke R12.';
+          dashboardNotice('Data siap. Refresh untuk mengambil perubahan pada sheet / pengguna lain.');
         } catch(e) {
           if(mode===appMode&&epoch===boardEpoch)dashboardNotice('Data awal belum termuat: '+(e.message||'Tekan Refresh.')+' Muat data dahulu sebelum scan.');
         } finally {boardInFlight=false;if(mode!==appMode)fetchInitialData();drainPendingScan();}
@@ -452,7 +458,7 @@ function snapshotStats(records) {
         const bytes=new Uint32Array(4);crypto.getRandomValues(bytes);
         scannerToken=Array.from(bytes,n=>n.toString(16).padStart(8,'0')).join('');
         const target=new URL(scannerUrl);
-        target.searchParams.set('wmsVersion','R11');
+        target.searchParams.set('wmsVersion','R12');
         target.hash=new URLSearchParams({wmsScanner:scannerToken,openerOrigin:location.origin}).toString();
         scannerWindow=window.open(target.href,'_blank','popup,width=520,height=740');
         if(!scannerWindow){scannerToken='';Swal.fire('Kamera belum terbuka','Izinkan pop-up untuk halaman WMS, lalu tekan Scan Live lagi.','info');}
@@ -533,7 +539,7 @@ function snapshotStats(records) {
         finally{cameraStarting=false;}
       }
       function bootWms(){
-        const badge=document.createElement('div');badge.textContent='WMS R11';
+        const badge=document.createElement('div');badge.textContent='WMS R12';
         badge.style.cssText='position:fixed;bottom:4px;right:8px;z-index:10000;font-size:11px;color:#64748b;background:#fff;padding:2px 5px;border-radius:4px;';document.body.appendChild(badge);
         if(inAppsScript()){
           google.script.url.getLocation(loc=>{scannerUrl=safeScannerUrl(loc.parameter&&loc.parameter.scannerUrl||'');});
@@ -545,7 +551,7 @@ function snapshotStats(records) {
         const hash=new URLSearchParams(location.hash.slice(1)),token=hash.get('wmsScanner'),origin=hash.get('openerOrigin');
         if(token){
           let valid=false;try{const o=new URL(origin);valid=o.protocol==='https:'&&o.origin===origin&&o.hostname.endsWith('.googleusercontent.com');}catch(e){}
-          if(!valid||!window.opener||!/^[a-f0-9]{32}$/.test(token)){panel.textContent='Buka kamera dari tombol Scan Live pada WMS R11.';return;}
+          if(!valid||!window.opener||!/^[a-f0-9]{32}$/.test(token)){panel.textContent='Buka kamera dari tombol Scan Live pada WMS R12.';return;}
           scannerSession={token:token,origin:origin,accepted:false};
           panel.innerHTML='<h2>Scan barcode bin</h2><p>Kamera live • tanpa foto atau upload gambar</p><div id="liveReader"></div><p id="cameraMessage" role="status">Membuka kamera…</p><button id="startCamera" class="btn btn-primary w-100" hidden>Aktifkan Kamera</button><button id="returnWms" class="btn btn-primary w-100" hidden>Kembali ke WMS</button><button id="closeCamera" class="btn btn-outline-secondary w-100 mt-2">Tutup Kamera</button>';
           document.getElementById('startCamera').onclick=startLiveCamera;
